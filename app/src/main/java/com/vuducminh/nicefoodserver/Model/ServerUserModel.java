@@ -1,4 +1,4 @@
-package com.vuducminh.nicefoodserver.model;
+package com.vuducminh.nicefoodserver.Model;
 
 public class ServerUserModel {
     private String uid,name,phone;
