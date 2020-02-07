@@ -36,7 +36,7 @@ public class CategoryViewModel extends ViewModel implements ICategoryCallbackLis
         return categoryList;
     }
 
-    private void loadCategories() {
+    public void loadCategories() {
         List<CategoryModel> tempList = new ArrayList<>();
         DatabaseReference categoryRef = FirebaseDatabase.getInstance().getReference(CommonAgr.CATEGORY_REF);
         categoryRef.addListenerForSingleValueEvent(new ValueEventListener() {

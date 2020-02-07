@@ -8,10 +8,7 @@
             android:id="@+id/nav_category"
             android:icon="@drawable/ic_restaurant_menu_black_24dp"
             android:title="@string/menu_category" />
-        <item
-            android:id="@+id/nav_gallery"
-            android:icon="@drawable/ic_menu_gallery"
-            android:title="@string/menu_gallery" />
+
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
