@@ -14,6 +14,8 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 import com.vuducminh.nicefoodserver.EventBus.CategoryClick;
+import com.vuducminh.nicefoodserver.EventBus.ChangeMenuClick;
+import com.vuducminh.nicefoodserver.EventBus.ToastEvent;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -21,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
+import android.widget.Toast;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -32,6 +35,7 @@ public class HomeActivity extends AppCompatActivity {
     private  DrawerLayout drawer;
     private NavigationView navigationView;
     private NavController navController;
+    private int menuClick = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +87,37 @@ public class HomeActivity extends AppCompatActivity {
     @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
     public void onCategoryClick(CategoryClick event) {
         if(event.isSuccess()) {
-           navController.navigate(R.id.nav_food_list);
+            if(menuClick != R.id.nav_food_list) {
+                navController.navigate(R.id.nav_food_list);
+                menuClick = R.id.nav_food_list;
+            }
         }
+    }
+
+    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+    public void onToastEvent(ToastEvent event) {
+        if(event.isUpdate()) {
+            Toast.makeText(this,"Update Success!",Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(this,"Delete Success!",Toast.LENGTH_SHORT).show();
+        }
+        EventBus.getDefault().postSticky(new ChangeMenuClick(event.isFromFoodList()));
+
+    }
+
+    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+    public void onChangeMenuClick(ChangeMenuClick event) {
+        if(event.isFromFoodList()) {
+            //Clear
+            navController.popBackStack(R.id.nav_category,true);
+            navController.navigate(R.id.nav_category);
+        }
+        else {
+            //Clear
+            navController.popBackStack(R.id.nav_food_list,true);
+            navController.navigate(R.id.nav_food_list);
+        }
+        menuClick = -1;
     }
 }

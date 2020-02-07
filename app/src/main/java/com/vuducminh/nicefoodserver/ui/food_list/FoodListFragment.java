@@ -38,8 +38,12 @@ import com.vuducminh.nicefoodserver.Adapter.MyFoodListAdapter;
 import com.vuducminh.nicefoodserver.Common.Common;
 import com.vuducminh.nicefoodserver.Common.CommonAgr;
 import com.vuducminh.nicefoodserver.Common.MySwiperHelper;
+import com.vuducminh.nicefoodserver.EventBus.ChangeMenuClick;
+import com.vuducminh.nicefoodserver.EventBus.ToastEvent;
 import com.vuducminh.nicefoodserver.Model.FoodModel;
 import com.vuducminh.nicefoodserver.R;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.HashMap;
 import java.util.List;
@@ -230,11 +234,7 @@ public class FoodListFragment extends Fragment {
                 .addOnCompleteListener(task -> {
                    if(task.isSuccessful()) {
                        foodListViewModel.getMutableLiveDataFoodList();
-                       if(isDelete) {
-                           Toast.makeText(getContext(),"Delete success",Toast.LENGTH_SHORT).show();
-                       }
-                       else Toast.makeText(getContext(),"Update success",Toast.LENGTH_SHORT).show();
-
+                       EventBus.getDefault().postSticky(new ToastEvent(!isDelete,true));
                    }
                 });
     }
@@ -248,5 +248,11 @@ public class FoodListFragment extends Fragment {
                 img_food.setImageURI(imageUri);
             }
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().postSticky(new ChangeMenuClick(true));
+        super.onDestroy();
     }
 }

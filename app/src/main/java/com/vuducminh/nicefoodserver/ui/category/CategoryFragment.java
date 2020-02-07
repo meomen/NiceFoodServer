@@ -40,9 +40,12 @@ import com.vuducminh.nicefoodserver.Common.Common;
 import com.vuducminh.nicefoodserver.Common.CommonAgr;
 import com.vuducminh.nicefoodserver.Common.MySwiperHelper;
 import com.vuducminh.nicefoodserver.Common.SpacesIiemDecoration;
+import com.vuducminh.nicefoodserver.EventBus.ToastEvent;
 import com.vuducminh.nicefoodserver.Model.CategoryModel;
 import com.vuducminh.nicefoodserver.R;
 import com.vuducminh.nicefoodserver.Adapter.MyCategoriesAdapter;
+
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.HashMap;
 import java.util.List;
@@ -104,7 +107,7 @@ public class CategoryFragment extends Fragment {
         storageReference = storage.getReference();
 
         dialog = new SpotsDialog.Builder().setContext(getContext()).setCancelable(false).build();
-        dialog.show();
+//        dialog.show();   Remove it to fix loading show when resume fragment
         layoutAnimationController = AnimationUtils.loadLayoutAnimation(getContext(),R.anim.layout_item_from_left);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
@@ -201,8 +204,7 @@ public class CategoryFragment extends Fragment {
                 })
                 .addOnCompleteListener(task -> {
                    categoryViewModel.loadCategories();
-                    Toast.makeText(getContext(),"Update success",Toast.LENGTH_SHORT).show();
-
+                    EventBus.getDefault().postSticky(new ToastEvent(true,false));
                 });
     }
 

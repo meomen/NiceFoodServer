@@ -15,29 +15,14 @@
         android:id="@+id/nav_food_list"
         android:name="com.vuducminh.nicefoodserver.ui.food_list.FoodListFragment"
         android:label="@string/menu_food_list"
-        tools:layout="@layout/fragment_food_list" />
+        tools:layout="@layout/fragment_food_list">
 
-    <fragment
-        android:id="@+id/nav_slideshow"
-        android:name="com.vuducminh.nicefoodserver.ui.slideshow.SlideshowFragment"
-        android:label="@string/menu_slideshow"
-        tools:layout="@layout/fragment_slideshow" />
+        <action android:id="@+id/clearBackstack"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_category"
+            app:popUpToInclusive="true"/>
+    </fragment>
 
-    <fragment
-        android:id="@+id/nav_tools"
-        android:name="com.vuducminh.nicefoodserver.ui.tools.ToolsFragment"
-        android:label="@string/menu_tools"
-        tools:layout="@layout/fragment_tools" />
 
-    <fragment
-        android:id="@+id/nav_share"
-        android:name="com.vuducminh.nicefoodserver.ui.share.ShareFragment"
-        android:label="@string/menu_share"
-        tools:layout="@layout/fragment_share" />
 
-    <fragment
-        android:id="@+id/nav_send"
-        android:name="com.vuducminh.nicefoodserver.ui.send.SendFragment"
-        android:label="@string/menu_send"
-        tools:layout="@layout/fragment_send" />
 </navigation>
