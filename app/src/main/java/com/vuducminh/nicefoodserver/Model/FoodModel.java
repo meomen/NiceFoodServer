@@ -15,6 +15,9 @@ public  class FoodModel {
     private List<AddonModel> userSelectedAddon;
     private SizeModel userSelectedSize;
 
+    //For Search
+    private int positionInList;
+
     public FoodModel() {
     }
 
@@ -26,6 +29,7 @@ public  class FoodModel {
         this.price = price;
         this.addon = addon;
         this.size = size;
+        this.positionInList = -1;
     }
 
     public String getName() {
@@ -122,5 +126,13 @@ public  class FoodModel {
 
     public void setUserSelectedSize(SizeModel userSelectedSize) {
         this.userSelectedSize = userSelectedSize;
+    }
+
+    public int getPositionInList() {
+        return positionInList;
+    }
+
+    public void setPositionInList(int positionInList) {
+        this.positionInList = positionInList;
     }
 }

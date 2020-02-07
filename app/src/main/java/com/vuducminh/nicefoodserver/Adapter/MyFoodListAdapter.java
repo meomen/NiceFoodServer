@@ -71,6 +71,10 @@ public class MyFoodListAdapter extends RecyclerView.Adapter<MyFoodListAdapter.My
         return foodModelList.size();
     }
 
+    public FoodModel getItemAtPosition(int position) {
+        return foodModelList.get(position);
+    }
+
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         @BindView(R.id.tv_food_name)
         TextView tv_food_name;
