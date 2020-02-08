@@ -42,7 +42,7 @@ public class OrderViewModel extends ViewModel implements IOrderCallbackListerner
         return messageError;
     }
 
-    private void loadOrderByStatus(int status) {
+    public void loadOrderByStatus(int status) {
         List<OrderModel> tempList = new ArrayList<>();
         Query orderRef = FirebaseDatabase.getInstance().getReference(CommonAgr.ORDER_REF)
                 .orderByChild("orderStatus")
