@@ -9,9 +9,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.vuducminh.nicefoodserver.Callback.ICategoryCallbackListener;
-import com.vuducminh.nicefoodserver.Common.CommonAgr;
-import com.vuducminh.nicefoodserver.Model.CategoryModel;
+import com.vuducminh.nicefoodserver.callback.ICategoryCallbackListener;
+import com.vuducminh.nicefoodserver.common.CommonAgr;
+import com.vuducminh.nicefoodserver.model.CategoryModel;
 
 import java.util.ArrayList;
 import java.util.List;

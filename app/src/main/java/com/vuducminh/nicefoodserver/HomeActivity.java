@@ -4,12 +4,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
-
 import android.view.MenuItem;
 import android.view.View;
 
@@ -23,10 +17,10 @@ import androidx.navigation.ui.NavigationUI;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.vuducminh.nicefoodserver.Common.Common;
-import com.vuducminh.nicefoodserver.EventBus.CategoryClick;
-import com.vuducminh.nicefoodserver.EventBus.ChangeMenuClick;
-import com.vuducminh.nicefoodserver.EventBus.ToastEvent;
+import com.vuducminh.nicefoodserver.common.Common;
+import com.vuducminh.nicefoodserver.eventbus.CategoryClick;
+import com.vuducminh.nicefoodserver.eventbus.ChangeMenuClick;
+import com.vuducminh.nicefoodserver.eventbus.ToastEvent;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -63,7 +57,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // Passing each menu ID as a set of Ids because each
         // menu should be considered as top level destinations.
         mAppBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.nav_category, R.id.nav_food_list, R.id.nav_order)
+                R.id.nav_category, R.id.nav_food_list, R.id.nav_order,R.id.nav_shipper)
                 .setDrawerLayout(drawer)
                 .build();
         navController = Navigation.findNavController(this, R.id.nav_host_fragment);
@@ -169,6 +163,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 if (menuItem.getItemId() != menuClick) {
                     navController.popBackStack();
                     navController.navigate(R.id.nav_order);
+                }
+                break;
+            }
+            case R.id.nav_shipper: {
+                if (menuItem.getItemId() != menuClick) {
+                    navController.popBackStack();
+                    navController.navigate(R.id.nav_shipper);
                 }
                 break;
             }

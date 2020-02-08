@@ -1,7 +1,6 @@
 package com.vuducminh.nicefoodserver.ui.order;
 
 import androidx.annotation.NonNull;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -10,13 +9,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
-import com.vuducminh.nicefoodserver.Callback.IOrderCallbackListerner;
-import com.vuducminh.nicefoodserver.Common.Common;
-import com.vuducminh.nicefoodserver.Common.CommonAgr;
-import com.vuducminh.nicefoodserver.Model.OrderModel;
+import com.vuducminh.nicefoodserver.callback.IOrderCallbackListerner;
+import com.vuducminh.nicefoodserver.common.CommonAgr;
+import com.vuducminh.nicefoodserver.model.OrderModel;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 

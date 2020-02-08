@@ -16,5 +16,6 @@
     <string name="menu_tools">Tools</string>
     <string name="menu_share">Share</string>
     <string name="menu_order">Orders</string>
+    <string name="menu_shipper">Shippers</string>
     <string name="sign_out">Sign Out</string>
 </resources>

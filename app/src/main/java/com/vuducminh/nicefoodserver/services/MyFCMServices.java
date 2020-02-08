@@ -4,8 +4,8 @@ import androidx.annotation.NonNull;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.vuducminh.nicefoodserver.Common.Common;
-import com.vuducminh.nicefoodserver.Common.CommonAgr;
+import com.vuducminh.nicefoodserver.common.Common;
+import com.vuducminh.nicefoodserver.common.CommonAgr;
 
 import java.util.Map;
 import java.util.Random;

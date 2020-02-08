@@ -22,9 +22,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.vuducminh.nicefoodserver.Common.Common;
-import com.vuducminh.nicefoodserver.Common.CommonAgr;
-import com.vuducminh.nicefoodserver.Model.ServerUserModel;
+import com.vuducminh.nicefoodserver.common.Common;
+import com.vuducminh.nicefoodserver.common.CommonAgr;
+import com.vuducminh.nicefoodserver.model.ServerUserModel;
 
 import java.util.Arrays;
 import java.util.List;

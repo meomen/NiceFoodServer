@@ -23,43 +23,41 @@ import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.PermissionToken;
 import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
-import com.vuducminh.nicefoodserver.Adapter.MyOrderAdapter;
-import com.vuducminh.nicefoodserver.Common.BottomSheetOrderFragment;
-import com.vuducminh.nicefoodserver.Common.Common;
-import com.vuducminh.nicefoodserver.Common.CommonAgr;
-import com.vuducminh.nicefoodserver.Common.MySwiperHelper;
-import com.vuducminh.nicefoodserver.EventBus.AddonSizeEditEvent;
-import com.vuducminh.nicefoodserver.EventBus.ChangeMenuClick;
-import com.vuducminh.nicefoodserver.EventBus.LoadOrderEvent;
-import com.vuducminh.nicefoodserver.Model.FoodModel;
-import com.vuducminh.nicefoodserver.Model.OrderModel;
+import com.vuducminh.nicefoodserver.adapter.MyOrderAdapter;
+import com.vuducminh.nicefoodserver.common.BottomSheetOrderFragment;
+import com.vuducminh.nicefoodserver.common.Common;
+import com.vuducminh.nicefoodserver.common.CommonAgr;
+import com.vuducminh.nicefoodserver.common.MySwiperHelper;
+import com.vuducminh.nicefoodserver.eventbus.ChangeMenuClick;
+import com.vuducminh.nicefoodserver.eventbus.LoadOrderEvent;
+import com.vuducminh.nicefoodserver.model.FCMserver.FCMResponse;
+import com.vuducminh.nicefoodserver.model.FCMserver.FCMSendData;
+import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.R;
-import com.vuducminh.nicefoodserver.ui.SizeAddonEditActivity;
+import com.vuducminh.nicefoodserver.model.TokenModel;
+import com.vuducminh.nicefoodserver.remote.IFCMServer;
+import com.vuducminh.nicefoodserver.remote.RetrofitFCMClient;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,6 +66,11 @@ import java.util.Map;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import dmax.dialog.SpotsDialog;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class OrderFragment extends Fragment {
     @BindView(R.id.recycler_order)
@@ -80,6 +83,9 @@ public class OrderFragment extends Fragment {
     private OrderViewModel orderViewModel;
     private LayoutAnimationController layoutAnimationControllerl;
     private MyOrderAdapter adapter;
+
+    private CompositeDisposable compositeDisposable = new CompositeDisposable();
+    private IFCMServer ifcmServer;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -106,6 +112,8 @@ public class OrderFragment extends Fragment {
 
     private void initViews() {
 
+        ifcmServer = RetrofitFCMClient.getInstance().create(IFCMServer.class);
+
         DisplayMetrics displayMetrics = new DisplayMetrics();
         getActivity().getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
         int width = displayMetrics.widthPixels;
@@ -131,13 +139,14 @@ public class OrderFragment extends Fragment {
                                             Intent intent = new Intent();
                                             intent.setAction(Intent.ACTION_DIAL);
                                             intent.setData(Uri.parse(new StringBuilder("tel :")
-                                            .append(orderModel.getUserPhone()).toString()));
+                                                    .append(orderModel.getUserPhone()).toString()));
                                             startActivity(intent);
 
                                         }
+
                                         @Override
                                         public void onPermissionDenied(PermissionDeniedResponse response) {
-                                            Toast.makeText(getContext(),"You must accept "+response.getPermissionName(),Toast.LENGTH_SHORT).show();
+                                            Toast.makeText(getContext(), "You must accept " + response.getPermissionName(), Toast.LENGTH_SHORT).show();
 
                                         }
 
@@ -168,7 +177,7 @@ public class OrderFragment extends Fragment {
                                                 .addOnSuccessListener(task -> {
                                                     adapter.removeItem(position);
                                                     adapter.notifyItemRemoved(position);
-                                                   updateTextCounter();
+                                                    updateTextCounter();
                                                     dialogInterface.dismiss();
                                                     Toast.makeText(getContext(), "Order has been delete!", Toast.LENGTH_SHORT).show();
                                                 });
@@ -184,7 +193,7 @@ public class OrderFragment extends Fragment {
                 ));
                 buf.add(new MyButton(getContext(), "Edit", 30, 0, Color.parseColor("#336699"),
                         position -> {
-                    showEditDialog(adapter.getItemAtPosition(position),position);
+                            showEditDialog(adapter.getItemAtPosition(position), position);
 
                         })
                 );
@@ -201,92 +210,136 @@ public class OrderFragment extends Fragment {
     private void showEditDialog(OrderModel orderModel, int position) {
         View layout_dialog;
         AlertDialog.Builder builder;
-        if(orderModel.getOrderStatus() == 0) {
+        if (orderModel.getOrderStatus() == 0) {
             layout_dialog = LayoutInflater.from(getContext())
-                    .inflate(R.layout.layout_dialog_shipping,null);
-            builder = new AlertDialog.Builder(getContext(),android.R.style.Theme_Material_Light_NoActionBar_Fullscreen)
-            .setView(layout_dialog);
-        }
-        else if(orderModel.getOrderStatus() == -1) {
+                    .inflate(R.layout.layout_dialog_shipping, null);
+            builder = new AlertDialog.Builder(getContext(), android.R.style.Theme_Material_Light_NoActionBar_Fullscreen)
+                    .setView(layout_dialog);
+        } else if (orderModel.getOrderStatus() == -1) {
             layout_dialog = LayoutInflater.from(getContext())
-                    .inflate(R.layout.layout_dialog_cancelled,null);
+                    .inflate(R.layout.layout_dialog_cancelled, null);
             builder = new AlertDialog.Builder(getContext())
                     .setView(layout_dialog);
-        }
-        else {
+        } else {
             layout_dialog = LayoutInflater.from(getContext())
-                    .inflate(R.layout.layout_dialog_shipped,null);
+                    .inflate(R.layout.layout_dialog_shipped, null);
             builder = new AlertDialog.Builder(getContext())
                     .setView(layout_dialog);
         }
 
         //View
-        Button btn_ok =(Button) layout_dialog.findViewById(R.id.btn_ok);
-        Button btn_cancle =(Button)layout_dialog.findViewById(R.id.btn_cancle);
+        Button btn_ok = (Button) layout_dialog.findViewById(R.id.btn_ok);
+        Button btn_cancle = (Button) layout_dialog.findViewById(R.id.btn_cancle);
 
-        RadioButton rdi_shipping = (RadioButton)layout_dialog.findViewById(R.id.rdi_shipping);
-        RadioButton rdi_shipped = (RadioButton)layout_dialog.findViewById(R.id.rdi_shipped);
-        RadioButton rdi_cancelled = (RadioButton)layout_dialog.findViewById(R.id.rdi_canncelled);
-        RadioButton rdi_delete = (RadioButton)layout_dialog.findViewById(R.id.rdi_delete);
-        RadioButton rdi_restore_placed = (RadioButton)layout_dialog.findViewById(R.id.rdi_restore_placed);
+        RadioButton rdi_shipping = (RadioButton) layout_dialog.findViewById(R.id.rdi_shipping);
+        RadioButton rdi_shipped = (RadioButton) layout_dialog.findViewById(R.id.rdi_shipped);
+        RadioButton rdi_cancelled = (RadioButton) layout_dialog.findViewById(R.id.rdi_canncelled);
+        RadioButton rdi_delete = (RadioButton) layout_dialog.findViewById(R.id.rdi_delete);
+        RadioButton rdi_restore_placed = (RadioButton) layout_dialog.findViewById(R.id.rdi_restore_placed);
 
-        TextView tv_status = (TextView)layout_dialog.findViewById(R.id.tv_status);
+        TextView tv_status = (TextView) layout_dialog.findViewById(R.id.tv_status);
 
         //Set Data
         tv_status.setText(new StringBuilder("Order Stauts(")
-        .append(Common.convertStatusToString(orderModel.getOrderStatus())));
+                .append(Common.convertStatusToString(orderModel.getOrderStatus())));
         //Create Dialog
         AlertDialog dialog = builder.create();
         dialog.show();
         //Custom dialog
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.getWindow().setGravity(Gravity.CENTER);
-        
+
         btn_cancle.setOnClickListener(v -> {
-                dialog.dismiss();       
+            dialog.dismiss();
         });
         btn_ok.setOnClickListener(v -> {
-                if(rdi_cancelled != null && rdi_cancelled.isChecked()) {
-                    updateOrder(position,orderModel,-1);
-                }
-                else if(rdi_shipping != null && rdi_shipping.isChecked()) {
-                    updateOrder(position,orderModel,1);
-                }
-                else if(rdi_shipped != null && rdi_shipped.isChecked()) {
-                    updateOrder(position,orderModel,2);
-                }
-                else if(rdi_restore_placed != null && rdi_restore_placed.isChecked()) {
-                    updateOrder(position,orderModel,0);
-                }
-                else if(rdi_delete != null && rdi_delete.isChecked()) {
-                    deleteOrder(position,orderModel);
-                }
-                
-                dialog.dismiss();
+            if (rdi_cancelled != null && rdi_cancelled.isChecked()) {
+                updateOrder(position, orderModel, -1);
+            } else if (rdi_shipping != null && rdi_shipping.isChecked()) {
+                updateOrder(position, orderModel, 1);
+            } else if (rdi_shipped != null && rdi_shipped.isChecked()) {
+                updateOrder(position, orderModel, 2);
+            } else if (rdi_restore_placed != null && rdi_restore_placed.isChecked()) {
+                updateOrder(position, orderModel, 0);
+            } else if (rdi_delete != null && rdi_delete.isChecked()) {
+                deleteOrder(position, orderModel);
+            }
+
+            dialog.dismiss();
         });
     }
 
-    private void updateOrder(int position,OrderModel orderModel,int status) {
-        if(!TextUtils.isEmpty(orderModel.getKey())) {
-            Map<String,Object> updateDate = new HashMap<>();
-            updateDate.put("orderStatus",status);
-            
+    private void updateOrder(int position, OrderModel orderModel, int status) {
+        if (!TextUtils.isEmpty(orderModel.getKey())) {
+            Map<String, Object> updateDate = new HashMap<>();
+            updateDate.put("orderStatus", status);
+
             FirebaseDatabase.getInstance()
                     .getReference(CommonAgr.ORDER_REF)
                     .child(orderModel.getKey())
                     .updateChildren(updateDate)
                     .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     })
                     .addOnSuccessListener(aVoid -> {
+
+                        //Show dialog
+                        android.app.AlertDialog dialog = new SpotsDialog.Builder().setContext(getContext()).setCancelable(false).build();
+                        dialog.show();
+
+                        //First, get token of user
+                        FirebaseDatabase.getInstance()
+                                .getReference(CommonAgr.TOKEN_REF)
+                                .child(orderModel.getUserId())
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            TokenModel tokenModel = dataSnapshot.getValue(TokenModel.class);
+                                            Map<String, String> notiData = new HashMap<>();
+                                            notiData.put(CommonAgr.NOTI_TITLE, "Your order was update");
+                                            notiData.put(CommonAgr.NOTI_CONTENT, new StringBuilder("Your order ")
+                                                    .append(orderModel.getKey())
+                                                    .append(" was update to")
+                                                    .append(Common.convertStatusToString(status)).toString());
+
+                                            FCMSendData sendDate = new FCMSendData(tokenModel.getToken(), notiData);
+
+                                            compositeDisposable.add(ifcmServer.sendNotification(sendDate)
+                                                    .subscribeOn(Schedulers.io())
+                                                    .observeOn(AndroidSchedulers.mainThread())
+                                                    .subscribe(fcmResponse -> {
+                                                        dialog.dismiss();
+                                                        if (fcmResponse.getSuccess() == 1) {
+                                                            Toast.makeText(getContext(), "Update order success!", Toast.LENGTH_SHORT).show();
+                                                        } else {
+                                                            Toast.makeText(getContext(), "Update order success but failed to send notofication", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }, throwable -> {
+                                                        dialog.dismiss();
+                                                        Toast.makeText(getContext(), "" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }));
+                                        } else {
+                                            dialog.dismiss();
+                                            Toast.makeText(getContext(), "", Toast.LENGTH_SHORT).show();
+                                        }
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        dialog.dismiss();
+                                        Toast.makeText(getContext(), "Loi 2" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
                         adapter.removeItem(position);
                         adapter.notifyItemRemoved(position);
                         updateTextCounter();
-                        Toast.makeText(getContext(),"Update order success!",Toast.LENGTH_SHORT).show();
 
                     });
-        }else {
-            Toast.makeText(getContext(),"Order number must not be null or empty",Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Order number must not be null or empty", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -298,7 +351,7 @@ public class OrderFragment extends Fragment {
     }
 
     private void deleteOrder(int position, OrderModel orderModel) {
-        if(!TextUtils.isEmpty(orderModel.getKey())) {
+        if (!TextUtils.isEmpty(orderModel.getKey())) {
 
 
             FirebaseDatabase.getInstance()
@@ -306,16 +359,16 @@ public class OrderFragment extends Fragment {
                     .child(orderModel.getKey())
                     .removeValue()
                     .addOnFailureListener(e -> {
-                        Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
                     })
                     .addOnSuccessListener(aVoid -> {
                         adapter.removeItem(position);
                         adapter.notifyItemRemoved(position);
                         updateTextCounter();
-                        Toast.makeText(getContext(),"Delete order success!",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), "Delete order success!", Toast.LENGTH_SHORT).show();
                     });
-        }else {
-            Toast.makeText(getContext(),"Order number must not be null or empty",Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getContext(), "Order number must not be null or empty", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -327,13 +380,12 @@ public class OrderFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
 
-        if(item.getItemId() == R.id.action_filter) {
+        if (item.getItemId() == R.id.action_filter) {
             BottomSheetOrderFragment bottomSheetOrderFragment = BottomSheetOrderFragment.getInstance();
-            bottomSheetOrderFragment.show(getActivity().getSupportFragmentManager(),"OrderFilter");
+            bottomSheetOrderFragment.show(getActivity().getSupportFragmentManager(), "OrderFilter");
             return true;
-        }
-       else {
-           return super.onOptionsItemSelected(item);
+        } else {
+            return super.onOptionsItemSelected(item);
         }
     }
 
@@ -353,6 +405,7 @@ public class OrderFragment extends Fragment {
         if (EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().unregister(this);
         }
+        compositeDisposable.clear();
         super.onStop();
     }
 
