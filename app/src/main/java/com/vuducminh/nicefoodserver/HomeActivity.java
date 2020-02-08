@@ -4,6 +4,9 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
@@ -19,6 +22,7 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuducminh.nicefoodserver.Common.Common;
 import com.vuducminh.nicefoodserver.EventBus.CategoryClick;
 import com.vuducminh.nicefoodserver.EventBus.ChangeMenuClick;
@@ -52,6 +56,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        subscribeToTopic(Common.createTopicOrder());
+
         drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
         // Passing each menu ID as a set of Ids because each
@@ -71,6 +77,19 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         Common.setSpanString("Hey", Common.currentServerUser.getName(), tv_user);
 
         menuClick = R.id.nav_category; // Default
+    }
+
+    private void subscribeToTopic(String topicOrder) {
+        FirebaseMessaging.getInstance()
+                .subscribeToTopic(topicOrder)
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this,""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                })
+                .addOnCompleteListener(task -> {
+                    if(task.isSuccessful()) {
+                        Toast.makeText(this,"Failed: "+task.isSuccessful(),Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     @Override

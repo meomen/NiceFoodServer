@@ -43,11 +43,15 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:19.2.0'
     implementation 'com.firebaseui:firebase-ui-auth:5.1.0'   // UI Firebase
     implementation 'com.google.firebase:firebase-storage:19.1.0'
+    implementation 'com.google.firebase:firebase-messaging:20.0.0'
 
 
-    // Thư viện các Weight
-    implementation 'com.github.d-max:spots-dialog:1.1@aar'
+    // Thư viện Retrofit2
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.6.1'
+    implementation 'com.squareup.retrofit2:converter-gson:2.6.1'
 
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.17'
 
     // Thư viện Butterkinfe, GreenRobot, Glide
     implementation 'org.greenrobot:eventbus:3.1.1'
@@ -56,8 +60,9 @@ dependencies {
     implementation 'com.github.bumptech.glide:glide:4.11.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
-
-    // Thư viện Dexter
+    // Thư viện các Weight
+    implementation 'com.github.d-max:spots-dialog:1.1@aar'
+    // Thư viện Dexter (Cấp quyền)
     implementation 'com.karumi:dexter:6.0.2'
 
 
