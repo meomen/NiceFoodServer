@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:weightSum="10"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/img_food_image"
+            android:layout_weight="3"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:scaleType="fitXY"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_weight="7"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp">
+
+            <TextView
+                android:id="@+id/tv_order_numner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Order Number: 238452894"
+                android:textColor="@android:color/holo_blue_light"
+                android:fontFamily="@font/brandon_medium"
+                android:textSize="16sp"
+                android:textStyle="italic"/>
+            <TextView
+                android:id="@+id/tv_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="2/7/2020 23:05:21"
+                android:fontFamily="@font/brandon_medium"
+                android:textSize="16sp"
+                android:textStyle="italic"/>
+
+            <TextView
+                android:id="@+id/tv_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Name: Minh"
+                android:fontFamily="@font/brandon_medium"
+                android:textSize="16sp"
+                android:textStyle="italic"/>
+            <TextView
+                android:id="@+id/tv_order_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Order status: Palce"
+                android:fontFamily="@font/brandon_medium"
+                android:textSize="16sp"
+                android:textStyle="italic"/>
+
+            <TextView
+                android:id="@+id/tv_num_item"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Num of items: 10"
+                android:fontFamily="@font/brandon_medium"
+                android:textSize="16sp"
+                android:textStyle="italic"/>
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

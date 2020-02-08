@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
             ServerUserModel serverUserModel = new ServerUserModel();
             serverUserModel.setUid(user.getUid());
-            serverUserModel.setName(user.getDisplayName());
+            serverUserModel.setName(edt_name.getText().toString());
             serverUserModel.setPhone(user.getPhoneNumber());
             serverUserModel.setActive(false);
 
