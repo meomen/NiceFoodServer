@@ -69,6 +69,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         View headerView = navigationView.getHeaderView(0);
         TextView tv_user = (TextView) headerView.findViewById(R.id.tv_user);
         Common.setSpanString("Hey", Common.currentServerUser.getName(), tv_user);
+
+        menuClick = R.id.nav_category; // Default
     }
 
     @Override
@@ -139,12 +141,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         switch (menuItem.getItemId()) {
             case R.id.nav_category: {
                 if (menuItem.getItemId() != menuClick) {
+                    navController.popBackStack();  // //remove all back stack
                     navController.navigate(R.id.nav_category);
                 }
                 break;
             }
             case R.id.nav_order: {
                 if (menuItem.getItemId() != menuClick) {
+                    navController.popBackStack();
                     navController.navigate(R.id.nav_order);
                 }
                 break;
