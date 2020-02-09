@@ -66,19 +66,15 @@
             android:textSize="22sp"/>
     </RadioGroup>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_shippers"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@+id/rdi_group"
         android:layout_above="@+id/layout_button"
         android:scrollbars="none">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textSize="500sp"
-            android:text="a"/>
-    </ScrollView>
+    </androidx.recyclerview.widget.RecyclerView>
 
     <LinearLayout
         android:id="@+id/layout_button"

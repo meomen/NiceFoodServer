@@ -1,6 +1,10 @@
 package com.vuducminh.nicefoodserver.ui.shipper;
 
+import android.widget.Button;
+import android.widget.RadioButton;
+
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -12,6 +16,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.vuducminh.nicefoodserver.callback.IShipperLoadcallbackListener;
 import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
+import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.model.ShipperModel;
 
 import java.util.ArrayList;
@@ -67,6 +72,11 @@ public class ShipperViewModel extends ViewModel implements IShipperLoadcallbackL
         if(shipperModelList != null) {
             mutableLiveDataShipper.setValue(shipperModelList);
         }
+    }
+
+    @Override
+    public void onShipperLoadSuccess(int position, OrderModel orderModel, List<ShipperModel> shipperModels, AlertDialog dialog, Button btn_ok, Button btn_cancle, RadioButton rdi_shipping, RadioButton rdi_shipped, RadioButton rdi_cancelled, RadioButton rdi_delete, RadioButton rdi_restore_placed) {
+
     }
 
     @Override
