@@ -318,12 +318,12 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
                 if (myShipperSelectionAdapter != null) {
                     shipperModel = myShipperSelectionAdapter.getSelectedShipper();
                     if (shipperModel != null) {
-                        createShippingOrder(shipperModel, orderModel, dialog);
+                        createShippingOrder(shipperModel, orderModel, dialog,position);
                     } else {
                         Toast.makeText(getContext(), "Please select Shipper", Toast.LENGTH_SHORT).show();
                     }
                 }
-                updateOrder(position, orderModel, 1);
+//                updateOrder(position, orderModel, 1);
             }
             else if (rdi_shipped != null && rdi_shipped.isChecked()) {
                 dialog.dismiss();
@@ -341,7 +341,7 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
         });
     }
 
-    private void createShippingOrder(ShipperModel shipperModel, OrderModel orderModel, AlertDialog dialog) {
+    private void createShippingOrder(ShipperModel shipperModel, OrderModel orderModel, AlertDialog dialog,int position) {
         ShippingOrderModel shippingOrder = new ShippingOrderModel();
         shippingOrder.setShipperPhone(shipperModel.getPhone());
         shippingOrder.setShipperName(shipperModel.getName());
@@ -361,6 +361,52 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
                     if (task.isSuccessful()) {
                         dialog.dismiss();
                         Toast.makeText(getContext(), "Order has been sent to shipper", Toast.LENGTH_SHORT).show();
+//                        updateOrder(position, orderModel, 1);
+
+                        //First, get token of user
+                        FirebaseDatabase.getInstance()
+                                .getReference(CommonAgr.TOKEN_REF)
+                                .child(shipperModel.getKey())
+                                .addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (dataSnapshot.exists()) {
+                                            TokenModel tokenModel = dataSnapshot.getValue(TokenModel.class);
+                                            Map<String, String> notiData = new HashMap<>();
+                                            notiData.put(CommonAgr.NOTI_TITLE, "You have new order need ship");
+                                            notiData.put(CommonAgr.NOTI_CONTENT, new StringBuilder("You have new order need ship to ")
+                                                    .append(orderModel.getUserPhone()).toString());
+
+
+                                            FCMSendData sendDate = new FCMSendData(tokenModel.getToken(), notiData);
+
+                                            compositeDisposable.add(ifcmServer.sendNotification(sendDate)
+                                                    .subscribeOn(Schedulers.io())
+                                                    .observeOn(AndroidSchedulers.mainThread())
+                                                    .subscribe(fcmResponse -> {
+                                                        dialog.dismiss();
+                                                        if (fcmResponse.getSuccess() == 1) {
+                                                            updateOrder(position, orderModel, 1);
+                                                        } else {
+                                                            Toast.makeText(getContext(), "Failed to send to shipper ! Order wasn't update!", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }, throwable -> {
+                                                        dialog.dismiss();
+                                                        Toast.makeText(getContext(), "" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }));
+                                        } else {
+                                            dialog.dismiss();
+                                            Toast.makeText(getContext(), "", Toast.LENGTH_SHORT).show();
+                                        }
+
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        dialog.dismiss();
+                                        Toast.makeText(getContext(), "" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                     }
                 });
 

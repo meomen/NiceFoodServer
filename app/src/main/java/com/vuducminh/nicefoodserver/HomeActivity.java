@@ -14,8 +14,12 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.eventbus.CategoryClick;
@@ -51,6 +55,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         setSupportActionBar(toolbar);
 
         subscribeToTopic(Common.createTopicOrder());
+        updatToken();
 
         drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
@@ -71,6 +76,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         Common.setSpanString("Hey", Common.currentServerUser.getName(), tv_user);
 
         menuClick = R.id.nav_category; // Default
+    }
+
+    private void updatToken() {
+        FirebaseInstanceId.getInstance()
+                .getInstanceId().addOnFailureListener(e -> Toast.makeText(HomeActivity.this,""+e.getMessage(),Toast.LENGTH_SHORT).show())
+                .addOnSuccessListener(instanceIdResult -> {
+                    Common.updateToken(HomeActivity.this,instanceIdResult.getToken(),
+                            true,false);
+                });
     }
 
     private void subscribeToTopic(String topicOrder) {
