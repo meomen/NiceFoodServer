@@ -52,11 +52,11 @@ import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.common.MySwiperHelper;
 import com.vuducminh.nicefoodserver.eventbus.ChangeMenuClick;
 import com.vuducminh.nicefoodserver.eventbus.LoadOrderEvent;
-import com.vuducminh.nicefoodserver.model.FCMserver.FCMResponse;
 import com.vuducminh.nicefoodserver.model.FCMserver.FCMSendData;
 import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.R;
 import com.vuducminh.nicefoodserver.model.ShipperModel;
+import com.vuducminh.nicefoodserver.model.ShippingOrderModel;
 import com.vuducminh.nicefoodserver.model.TokenModel;
 import com.vuducminh.nicefoodserver.remote.IFCMServer;
 import com.vuducminh.nicefoodserver.remote.RetrofitFCMClient;
@@ -76,7 +76,6 @@ import butterknife.Unbinder;
 import dmax.dialog.SpotsDialog;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class OrderFragment extends Fragment implements IShipperLoadcallbackListener {
@@ -261,13 +260,12 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
         //Create Dialog
         AlertDialog dialog = builder.create();
 
-        if(orderModel.getOrderStatus() == 0){
-            loadShipperList(position,orderModel,dialog,btn_ok,btn_cancle,
-                    rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed);
-        }
-        else {
-            showDialog(position,orderModel,dialog,btn_ok,btn_cancle,
-                    rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed);
+        if (orderModel.getOrderStatus() == 0) {
+            loadShipperList(position, orderModel, dialog, btn_ok, btn_cancle,
+                    rdi_shipping, rdi_shipped, rdi_cancelled, rdi_delete, rdi_restore_placed);
+        } else {
+            showDialog(position, orderModel, dialog, btn_ok, btn_cancle,
+                    rdi_shipping, rdi_shipped, rdi_cancelled, rdi_delete, rdi_restore_placed);
         }
 
 
@@ -280,15 +278,15 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
         shipperActive.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for(DataSnapshot shipperSnapshot:dataSnapshot.getChildren()) {
+                for (DataSnapshot shipperSnapshot : dataSnapshot.getChildren()) {
                     ShipperModel shipperModel = shipperSnapshot.getValue(ShipperModel.class);
                     shipperModel.setKey(shipperSnapshot.getKey());
                     tempList.add(shipperModel);
                 }
-                shipperLoadcallbackListener.onShipperLoadSuccess(position,orderModel,tempList,
+                shipperLoadcallbackListener.onShipperLoadSuccess(position, orderModel, tempList,
                         dialog,
-                        btn_ok,btn_cancle,
-                        rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed);
+                        btn_ok, btn_cancle,
+                        rdi_shipping, rdi_shipped, rdi_cancelled, rdi_delete, rdi_restore_placed);
 
             }
 
@@ -315,19 +313,17 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
             }
             else if (rdi_shipping != null && rdi_shipping.isChecked()) {
 
-//                updateOrder(position, orderModel, 1);
 
                 ShipperModel shipperModel = null;
-                if(myShipperSelectionAdapter != null) {
+                if (myShipperSelectionAdapter != null) {
                     shipperModel = myShipperSelectionAdapter.getSelectedShipper();
-                    if(shipperModel != null) {
-                        Toast.makeText(getContext(),""+shipperModel.getName(),Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                    }
-                    else {
-                        Toast.makeText(getContext(),"Please select Shipper",Toast.LENGTH_SHORT).show();
+                    if (shipperModel != null) {
+                        createShippingOrder(shipperModel, orderModel, dialog);
+                    } else {
+                        Toast.makeText(getContext(), "Please select Shipper", Toast.LENGTH_SHORT).show();
                     }
                 }
+                updateOrder(position, orderModel, 1);
             }
             else if (rdi_shipped != null && rdi_shipped.isChecked()) {
                 dialog.dismiss();
@@ -343,6 +339,31 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
 
 
         });
+    }
+
+    private void createShippingOrder(ShipperModel shipperModel, OrderModel orderModel, AlertDialog dialog) {
+        ShippingOrderModel shippingOrder = new ShippingOrderModel();
+        shippingOrder.setShipperPhone(shipperModel.getPhone());
+        shippingOrder.setShipperName(shipperModel.getName());
+        shippingOrder.setOrderModel(orderModel);
+        shippingOrder.setStartTrip(false);
+        shippingOrder.setCurrentLat(-1.0);
+        shippingOrder.setCurrentLng(-1.0);
+
+        FirebaseDatabase.getInstance()
+                .getReference(CommonAgr.SHIPPER_ORDER_REF)
+                .push()
+                .setValue(shippingOrder)
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
+                })
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        dialog.dismiss();
+                        Toast.makeText(getContext(), "Order has been sent to shipper", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
     }
 
     private void updateOrder(int position, OrderModel orderModel, int status) {
@@ -405,7 +426,7 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
                                     @Override
                                     public void onCancelled(@NonNull DatabaseError databaseError) {
                                         dialog.dismiss();
-                                        Toast.makeText(getContext(), "Loi 2" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "" + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                                     }
                                 });
 
@@ -503,23 +524,23 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
 
     @Override
     public void onShipperLoadSuccess(int position, OrderModel orderModel, List<ShipperModel> shipperModels, AlertDialog dialog, Button btn_ok, Button btn_cancle, RadioButton rdi_shipping, RadioButton rdi_shipped, RadioButton rdi_cancelled, RadioButton rdi_delete, RadioButton rdi_restore_placed) {
-        if(recycler_shipper != null) {
+        if (recycler_shipper != null) {
             recycler_shipper.setHasFixedSize(true);
             LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
             recycler_shipper.setLayoutManager(layoutManager);
-            recycler_shipper.addItemDecoration(new DividerItemDecoration(getContext(),layoutManager.getOrientation()));
+            recycler_shipper.addItemDecoration(new DividerItemDecoration(getContext(), layoutManager.getOrientation()));
 
-            myShipperSelectionAdapter = new MyShipperSelectionAdapter(getContext(),shipperModels);
+            myShipperSelectionAdapter = new MyShipperSelectionAdapter(getContext(), shipperModels);
             recycler_shipper.setAdapter(myShipperSelectionAdapter);
         }
-        showDialog(position,orderModel,
+        showDialog(position, orderModel,
                 dialog,
-                btn_ok,btn_cancle,
-                rdi_shipping,rdi_shipped,rdi_cancelled,rdi_delete,rdi_restore_placed);
+                btn_ok, btn_cancle,
+                rdi_shipping, rdi_shipped, rdi_cancelled, rdi_delete, rdi_restore_placed);
     }
 
     @Override
     public void onShipperLoadFailed(String message) {
-        Toast.makeText(getContext(),""+message,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "" + message, Toast.LENGTH_SHORT).show();
     }
 }
