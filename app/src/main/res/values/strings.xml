@@ -18,4 +18,5 @@
     <string name="menu_order">Orders</string>
     <string name="menu_shipper">Shippers</string>
     <string name="sign_out">Sign Out</string>
+    <string name="title_activity_tracking_order">Map</string>
 </resources>

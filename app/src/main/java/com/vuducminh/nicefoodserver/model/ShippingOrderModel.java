@@ -1,6 +1,7 @@
 package com.vuducminh.nicefoodserver.model;
 
 public class ShippingOrderModel {
+    private String key;
     private String shipperPhone,shipperName;
     private double currentLat,currentLng;
     private OrderModel orderModel;
@@ -60,6 +61,14 @@ public class ShippingOrderModel {
 
     public boolean isStartTrip() {
         return isStartTrip;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public void setStartTrip(boolean startTrip) {

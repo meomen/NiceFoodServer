@@ -12,4 +12,6 @@ public class CommonAgr {
     public static final String URL_FCM = "https://fcm.googleapis.com/";
     public static final String SHIPPER = "Shippers";
     public static final String SHIPPER_ORDER_REF = "ShippingOrderModel";
+    public static final String URL_MAP_GOOGLE = "https://maps.googleapis.com/";
+    public static String IS_OPEN_ACTIVITY_NEW_ORDER = "IsOpenActivityNewOrder";
 }

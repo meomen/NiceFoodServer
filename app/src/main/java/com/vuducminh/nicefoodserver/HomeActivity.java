@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 
@@ -22,6 +23,7 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.vuducminh.nicefoodserver.common.Common;
+import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.eventbus.CategoryClick;
 import com.vuducminh.nicefoodserver.eventbus.ChangeMenuClick;
 import com.vuducminh.nicefoodserver.eventbus.ToastEvent;
@@ -76,6 +78,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         Common.setSpanString("Hey", Common.currentServerUser.getName(), tv_user);
 
         menuClick = R.id.nav_category; // Default
+
+        checkIsOpenFromActivity();
+    }
+
+    private void checkIsOpenFromActivity() {
+        boolean isOpenFromNewOrder = getIntent().getBooleanExtra(CommonAgr.IS_OPEN_ACTIVITY_NEW_ORDER,false);
+        if(isOpenFromNewOrder) {
+            navController.popBackStack();
+            navController.navigate(R.id.nav_order);
+            menuClick = R.id.nav_order;
+        }
     }
 
     private void updatToken() {
@@ -84,6 +97,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 .addOnSuccessListener(instanceIdResult -> {
                     Common.updateToken(HomeActivity.this,instanceIdResult.getToken(),
                             true,false);
+
+                    Log.d("MYTOKEN",instanceIdResult.getToken());
                 });
     }
 
@@ -184,6 +199,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 if (menuItem.getItemId() != menuClick) {
                     navController.popBackStack();
                     navController.navigate(R.id.nav_shipper);
+                    menuClick  = R.id.nav_order;
                 }
                 break;
             }

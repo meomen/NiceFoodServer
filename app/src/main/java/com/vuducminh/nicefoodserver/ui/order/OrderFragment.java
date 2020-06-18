@@ -43,6 +43,7 @@ import com.karumi.dexter.listener.PermissionDeniedResponse;
 import com.karumi.dexter.listener.PermissionGrantedResponse;
 import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.single.PermissionListener;
+import com.vuducminh.nicefoodserver.TrackingOrderActivity;
 import com.vuducminh.nicefoodserver.adapter.MyOrderAdapter;
 import com.vuducminh.nicefoodserver.adapter.MyShipperSelectionAdapter;
 import com.vuducminh.nicefoodserver.callback.IShipperLoadcallbackListener;
@@ -137,7 +138,17 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
             public void instantiateMyButton(RecyclerView.ViewHolder viewHolder, List<MyButton> buf) {
                 buf.add(new MyButton(getContext(), "Directions", 30, 0, Color.parseColor("#9B0000"),
                         position -> {
-
+                            OrderModel orderModel = ((MyOrderAdapter)recycler_order.getAdapter())
+                                    .getItemAtPosition(position);
+                            if(orderModel.getOrderStatus() == 1) {
+                                Common.currentOrdeSelected = orderModel;
+                                startActivity(new Intent(getContext(), TrackingOrderActivity.class));
+                            }
+                            else {
+                                Toast.makeText(getContext(),new StringBuffer("You order is")
+                                        .append(Common.convertStatusToString(orderModel.getOrderStatus()))
+                                        .append(". So you can't track directions"),Toast.LENGTH_SHORT).show();
+                            }
                         })
                 );
 
@@ -352,7 +363,7 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
 
         FirebaseDatabase.getInstance()
                 .getReference(CommonAgr.SHIPPER_ORDER_REF)
-                .push()
+                .child(orderModel.getKey())
                 .setValue(shippingOrder)
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "" + e.getMessage(), Toast.LENGTH_SHORT).show();
