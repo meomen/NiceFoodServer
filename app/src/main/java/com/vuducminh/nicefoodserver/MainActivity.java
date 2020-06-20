@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.IdpResponse;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -62,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void init() {
 
-        providers = Arrays.asList(new AuthUI.IdpConfig.PhoneBuilder().build());
+        providers = Arrays.asList(new AuthUI.IdpConfig.PhoneBuilder().build(),
+                new AuthUI.IdpConfig.EmailBuilder().build());
 
         firebaseAuth = FirebaseAuth.getInstance();
         serverRef = FirebaseDatabase.getInstance().getReference(CommonAgr.SERVER_REF);
@@ -116,12 +118,22 @@ public class MainActivity extends AppCompatActivity {
                 "Admin will accept your account late");
 
         View itemView = LayoutInflater.from(this).inflate(R.layout.layout_register,null);
+        TextInputLayout phone_input_layout = (TextInputLayout)itemView.findViewById(R.id.phone_input_layout);
         EditText edt_name = (EditText)itemView.findViewById(R.id.edt_name);
         EditText edt_phone = (EditText)itemView.findViewById(R.id.edt_phone);
 
         //Set Data
 
-        edt_phone.setText(user.getPhoneNumber());
+        if(user.getPhoneNumber() == null || TextUtils.isEmpty(user.getPhoneNumber())) {
+            phone_input_layout.setHint("Email");
+            edt_phone.setText(user.getEmail());
+            edt_name.setText(user.getDisplayName());
+        }
+        else {
+            phone_input_layout.setHint("Phone");
+            edt_phone.setText(user.getPhoneNumber());
+        }
+
         builder.setNegativeButton("CANCLE", (dialogInterface, which) -> {
             dialogInterface.dismiss();
 
@@ -173,6 +185,8 @@ public class MainActivity extends AppCompatActivity {
         startActivityForResult(AuthUI.getInstance()
         .createSignInIntentBuilder()
         .setAvailableProviders(providers)
+                .setLogo(R.drawable.logo)
+                .setTheme(R.style.LoginTheme)
         .build(),API_REQUEST_CODE);
     }
 
