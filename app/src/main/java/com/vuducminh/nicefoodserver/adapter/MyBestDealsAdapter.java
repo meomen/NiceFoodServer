@@ -11,12 +11,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.vuducminh.nicefoodserver.eventbus.CategoryClick;
 import com.vuducminh.nicefoodserver.R;
 import com.vuducminh.nicefoodserver.callback.IRecyclerClickListener;
 import com.vuducminh.nicefoodserver.common.Common;
-import com.vuducminh.nicefoodserver.common.CommonAgr;
-import com.vuducminh.nicefoodserver.model.CategoryModel;
+import com.vuducminh.nicefoodserver.eventbus.CategoryClick;
+import com.vuducminh.nicefoodserver.model.BestDealsModel;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -26,41 +25,37 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
-public class MyCategoriesAdapter extends RecyclerView.Adapter<MyCategoriesAdapter.MyViewHolder> {
+public class MyBestDealsAdapter extends RecyclerView.Adapter<MyBestDealsAdapter.MyViewHolder> {
 
     Context context;
-    List<CategoryModel> categoryModelList;
+    List<BestDealsModel> bestDealsModels;
 
-    public MyCategoriesAdapter(Context context, List<CategoryModel> categoryModelList) {
+    public MyBestDealsAdapter(Context context, List<BestDealsModel> bestDealsModels) {
         this.context = context;
-        this.categoryModelList = categoryModelList;
+        this.bestDealsModels = bestDealsModels;
     }
 
     @NonNull
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.layout_category_item, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.layout_category_item,parent,false);
         return new MyViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-        Glide.with(context).load(categoryModelList.get(position).getImage()).into(holder.img_category);
-        holder.tv_category.setText(new StringBuffer(categoryModelList.get(position).getName()));
+        Glide.with(context).load(bestDealsModels.get(position).getImage()).into(holder.img_category);
+        holder.tv_category.setText(new StringBuffer(bestDealsModels.get(position).getName()));
 
         //Sự kiện
-        holder.setListener(new IRecyclerClickListener() {
-            @Override
-            public void onItemClickListener(View view, int pos) {
-                Common.categorySelected = categoryModelList.get(pos);
-                EventBus.getDefault().postSticky(new CategoryClick(true, categoryModelList.get(pos)));
-            }
+        holder.setListener((view, pos) -> {
+
         });
     }
 
     @Override
     public int getItemCount() {
-        return categoryModelList.size();
+        return bestDealsModels.size();
     }
 
     public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -87,22 +82,6 @@ public class MyCategoriesAdapter extends RecyclerView.Adapter<MyCategoriesAdapte
         @Override
         public void onClick(View v) {
             listener.onItemClickListener(v, getAdapterPosition());
-        }
-    }
-
-    @Override
-    public int getItemViewType(int position) {
-        if (categoryModelList.size() == 1) {
-            return CommonAgr.DEFAULT_COLUMN_COUNT;
-        } else {
-            if (categoryModelList.size() % 2 == 0) {
-                return CommonAgr.DEFAULT_COLUMN_COUNT;
-            } else {
-                if (position > 1 && position == categoryModelList.size() - 1)
-                    return CommonAgr.FULL_WIDTH_COLUMN;
-                else
-                    return CommonAgr.DEFAULT_COLUMN_COUNT;
-            }
         }
     }
 }

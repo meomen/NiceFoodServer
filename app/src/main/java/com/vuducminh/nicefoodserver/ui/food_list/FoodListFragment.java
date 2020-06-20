@@ -27,6 +27,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -83,11 +84,11 @@ public class FoodListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         foodListViewModel =
-                  ViewModelProviders.of(this).get(FoodListViewModel.class);
+                new ViewModelProvider(this).get(FoodListViewModel.class);
         View root = inflater.inflate(R.layout.fragment_food_list, container, false);
         unbinder = ButterKnife.bind(this,root);
         initViews();
-        foodListViewModel.getMutableLiveDataFoodList().observe(this, foodModels -> {
+        foodListViewModel.getMutableLiveDataFoodList().observe(getViewLifecycleOwner(), foodModels -> {
            if(foodModels != null) {
                foodModelList = foodModels;
                adapter = new MyFoodListAdapter(getContext(),foodModelList);

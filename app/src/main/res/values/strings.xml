@@ -19,4 +19,9 @@
     <string name="menu_shipper">Shippers</string>
     <string name="sign_out">Sign Out</string>
     <string name="title_activity_tracking_order">Map</string>
+    <string name="menu_best_deals">Best Deals</string>
+    <string name="menu_most_popular">Most Popular</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="menu_send_news">News System</string>
 </resources>

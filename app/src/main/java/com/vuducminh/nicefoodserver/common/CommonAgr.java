@@ -13,5 +13,9 @@ public class CommonAgr {
     public static final String SHIPPER = "Shippers";
     public static final String SHIPPER_ORDER_REF = "ShippingOrderModel";
     public static final String URL_MAP_GOOGLE = "https://maps.googleapis.com/";
+    public static final String MOST_POPULAR = "MostPopular";
+    public static final String IS_SEND_IMAGE = "IS_SEND_IMAGE";
     public static String IS_OPEN_ACTIVITY_NEW_ORDER = "IsOpenActivityNewOrder";
+    public static String BEST_DEALS = "BestDeals";
+    public static String IMAGE_URL = "IMAGE_URL";
 }

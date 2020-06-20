@@ -1,4 +1,8 @@
-package com.vuducminh.nicefoodserver.ui.category;
+package com.vuducminh.nicefoodserver.ui.most_popular;
+
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -6,6 +10,14 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,28 +27,18 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.vuducminh.nicefoodserver.R;
+import com.vuducminh.nicefoodserver.adapter.MyMostPopularAdapter;
 import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.common.MySwiperHelper;
 import com.vuducminh.nicefoodserver.eventbus.ToastEvent;
-import com.vuducminh.nicefoodserver.model.CategoryModel;
-import com.vuducminh.nicefoodserver.R;
-import com.vuducminh.nicefoodserver.adapter.MyCategoriesAdapter;
+import com.vuducminh.nicefoodserver.model.MostPopularModel;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -50,78 +52,76 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import dmax.dialog.SpotsDialog;
 
-public class CategoryFragment extends Fragment {
-
+public class MostPopularFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1234;
-    private CategoryViewModel categoryViewModel;
-
+    private MostPopularViewModel mViewModel;
 
     Unbinder unbinder;
-    @BindView(R.id.recycler_menu)
-    RecyclerView recycler_menu;
+    @BindView(R.id.recycler_most_popular)
+    RecyclerView recycler_most_popular;
     AlertDialog dialog;
     LayoutAnimationController layoutAnimationController;
-    MyCategoriesAdapter adapter;
+    MyMostPopularAdapter adapter;
 
-    List<CategoryModel> categoryModels;
-    ImageView img_category;
+    List<MostPopularModel> mostPopularModels;
+
+    ImageView img_most_popular;
     private Uri imageUri = null;
     FirebaseStorage storage;
     StorageReference storageReference;
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        categoryViewModel =
-                new ViewModelProvider(this).get(CategoryViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_category, container, false);
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        mViewModel =
+                new ViewModelProvider(this).get(MostPopularViewModel.class);
+        View root = inflater.inflate(R.layout.most_popular_fragment, container, false);
 
         unbinder = ButterKnife.bind(this,root);
         initView();
-        categoryViewModel.getMessageError().observe(getViewLifecycleOwner(), new Observer<String>() {
+        mViewModel.getMessageError().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 Toast.makeText(getContext(),""+s,Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
-        categoryViewModel.getCategoryList().observe(getViewLifecycleOwner(),categoryModelList -> {
+        mViewModel.getMostPopularListMutable().observe(getViewLifecycleOwner(),list -> {
             dialog.dismiss();
-            categoryModels = categoryModelList;
-            adapter = new MyCategoriesAdapter(getContext(),categoryModels);
-            recycler_menu.setAdapter(adapter);
-            recycler_menu.setLayoutAnimation(layoutAnimationController);
+            mostPopularModels = list;
+            adapter = new MyMostPopularAdapter(getContext(),mostPopularModels);
+            recycler_most_popular.setAdapter(adapter);
+            recycler_most_popular.setLayoutAnimation(layoutAnimationController);
         });
 
         return root;
     }
 
     private void initView() {
-
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
 
         dialog = new SpotsDialog.Builder().setContext(getContext()).setCancelable(false).build();
-//        dialog.show();   Remove it to fix loading show when resume fragment
         layoutAnimationController = AnimationUtils.loadLayoutAnimation(getContext(),R.anim.layout_item_from_left);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        recycler_menu.setLayoutManager(layoutManager);
-        recycler_menu.addItemDecoration(new DividerItemDecoration(getContext(),layoutManager.getOrientation()));
+        recycler_most_popular.setLayoutManager(layoutManager);
+        recycler_most_popular.addItemDecoration(new DividerItemDecoration(getContext(),layoutManager.getOrientation()));
 
-        MySwiperHelper mySwiperHelper = new MySwiperHelper(getContext(),recycler_menu,200) {
+        MySwiperHelper mySwiperHelper = new MySwiperHelper(getContext(),recycler_most_popular,200) {
             @Override
             public void instantiateMyButton(RecyclerView.ViewHolder viewHolder, List<MyButton> buf) {
-
                 buf.add(new MyButton(getContext(), "Delete", 30, 0, Color.parseColor("#333639"),
                         position -> {
-                            Common.categorySelected = categoryModels.get(position);
+                            Common.mostPopularSelected = mostPopularModels.get(position);
 
                             showDeleteDialog();
                         })
                 );
                 buf.add(new MyButton(getContext(), "Update", 30, 0, Color.parseColor("#560027"),
                         position -> {
-                            Common.categorySelected = categoryModels.get(position);
+                            Common.mostPopularSelected = mostPopularModels.get(position);
 
                             showUpdateDialog();
                         })
@@ -138,27 +138,13 @@ public class CategoryFragment extends Fragment {
             dialog.dismiss();
         })
                 .setPositiveButton("DELETE", (dialog, i) -> {
-                    deteleCategoy();
+                    deleteMostPopular();
                 });
 
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         dialog.show();
-    }
 
-    private void deteleCategoy() {
-        FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.CATEGORY_REF)
-                .child(Common.categorySelected.getMenu_id())
-                .removeValue()
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
-                })
-                .addOnCompleteListener(task -> {
-                    categoryViewModel.loadCategories();
-                    EventBus.getDefault().postSticky(new ToastEvent(false,true));
-                });
     }
-
     private void showUpdateDialog() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getContext());
         builder.setTitle("Update");
@@ -166,15 +152,15 @@ public class CategoryFragment extends Fragment {
 
         View itemView = LayoutInflater.from(getContext()).inflate(R.layout.layout_update_category,null);
         EditText edt_category_name = (EditText)itemView.findViewById(R.id.edt_category_name);
-        img_category = (ImageView)itemView.findViewById(R.id.img_category);
-        
+        img_most_popular = (ImageView)itemView.findViewById(R.id.img_category);
+
         //Set Data
-        edt_category_name.setText(new StringBuilder("").append(Common.categorySelected.getName()));
-        Glide.with(getContext()).load(Common.categorySelected.getImage()).into(img_category);
-        
-        
+        edt_category_name.setText(new StringBuilder("").append(Common.mostPopularSelected.getName()));
+        Glide.with(getContext()).load(Common.mostPopularSelected.getImage()).into(img_most_popular);
+
+
         //Set Event
-        img_category.setOnClickListener(v -> {
+        img_most_popular.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setType("image/*");
             intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -204,18 +190,18 @@ public class CategoryFragment extends Fragment {
                                 Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
                             }
                         }).addOnCompleteListener(task -> {
-                            dialog.dismiss();
-                            imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
-                                updateDate.put("image",uri.toString());
-                                updatecategory(updateDate);
-                            });
-                        }).addOnProgressListener(taskSnapshot -> {
-                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                            dialog.setMessage(new StringBuilder("Uploading: ").append(progress).append("%"));
+                    dialog.dismiss();
+                    imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
+                        updateDate.put("image",uri.toString());
+                        updateMostPopular(updateDate);
+                    });
+                }).addOnProgressListener(taskSnapshot -> {
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                    dialog.setMessage(new StringBuilder("Uploading: ").append(progress).append("%"));
                 });
             }
             else {
-                updatecategory(updateDate);
+                updateMostPopular(updateDate);
             }
 
         });
@@ -225,28 +211,51 @@ public class CategoryFragment extends Fragment {
         dialog.show();
     }
 
-    private void updatecategory(Map<String, Object> updateDate) {
+    private void updateMostPopular(Map<String, Object> updateDate) {
         FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.CATEGORY_REF)
-                .child(Common.categorySelected.getMenu_id())
+                .getReference(CommonAgr.MOST_POPULAR)
+                .child(Common.mostPopularSelected.getKey())
                 .updateChildren(updateDate)
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
                 })
                 .addOnCompleteListener(task -> {
-                   categoryViewModel.loadCategories();
+                    mViewModel.loadMostPopular();
                     EventBus.getDefault().postSticky(new ToastEvent(true,false));
                 });
     }
 
+    private void deleteMostPopular() {
+        FirebaseDatabase.getInstance()
+                .getReference(CommonAgr.MOST_POPULAR)
+                .child(Common.mostPopularSelected.getKey())
+                .removeValue()
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                })
+                .addOnCompleteListener(task -> {
+                    mViewModel.loadMostPopular();
+                    EventBus.getDefault().postSticky(new ToastEvent(false,false));
+                });
+    }
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             if(data != null && data.getData() != null) {
                 imageUri = data.getData();
-                img_category.setImageURI(imageUri);
+                img_most_popular.setImageURI(imageUri);
             }
         }
     }
+
+
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        mViewModel = ViewModelProviders.of(this).get(MostPopularViewModel.class);
+        // TODO: Use the ViewModel
+    }
+
 }

@@ -1,11 +1,24 @@
-package com.vuducminh.nicefoodserver.ui.category;
+package com.vuducminh.nicefoodserver.ui.best_detail;
+
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.lifecycle.ViewModelProviders;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,28 +28,21 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProvider;
-import androidx.lifecycle.ViewModelProviders;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.vuducminh.nicefoodserver.R;
+import com.vuducminh.nicefoodserver.adapter.MyBestDealsAdapter;
+import com.vuducminh.nicefoodserver.adapter.MyCategoriesAdapter;
 import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.common.MySwiperHelper;
 import com.vuducminh.nicefoodserver.eventbus.ToastEvent;
+import com.vuducminh.nicefoodserver.model.BestDealsModel;
 import com.vuducminh.nicefoodserver.model.CategoryModel;
-import com.vuducminh.nicefoodserver.R;
-import com.vuducminh.nicefoodserver.adapter.MyCategoriesAdapter;
+import com.vuducminh.nicefoodserver.ui.category.CategoryViewModel;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -50,53 +56,54 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 import dmax.dialog.SpotsDialog;
 
-public class CategoryFragment extends Fragment {
-
+public class BestDealsFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1234;
-    private CategoryViewModel categoryViewModel;
 
-
-    Unbinder unbinder;
-    @BindView(R.id.recycler_menu)
-    RecyclerView recycler_menu;
-    AlertDialog dialog;
-    LayoutAnimationController layoutAnimationController;
-    MyCategoriesAdapter adapter;
-
-    List<CategoryModel> categoryModels;
-    ImageView img_category;
+    private BestDealsViewModel mViewModel;
+    ImageView img_best_deals;
     private Uri imageUri = null;
     FirebaseStorage storage;
     StorageReference storageReference;
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        categoryViewModel =
-                new ViewModelProvider(this).get(CategoryViewModel.class);
-        View root = inflater.inflate(R.layout.fragment_category, container, false);
+    Unbinder unbinder;
+    @BindView(R.id.recycler_best_deal)
+    RecyclerView recycler_best_deal;
+    AlertDialog dialog;
+    LayoutAnimationController layoutAnimationController;
+    MyBestDealsAdapter adapter;
+
+    List<BestDealsModel> bestDealsModels;
+
+
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        mViewModel =
+                new ViewModelProvider(this).get(BestDealsViewModel.class);
+        View root = inflater.inflate(R.layout.best_deals_fragment, container, false);
 
         unbinder = ButterKnife.bind(this,root);
         initView();
-        categoryViewModel.getMessageError().observe(getViewLifecycleOwner(), new Observer<String>() {
+        mViewModel.getMessageError().observe(getViewLifecycleOwner(), new Observer<String>() {
             @Override
             public void onChanged(String s) {
                 Toast.makeText(getContext(),""+s,Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             }
         });
-        categoryViewModel.getCategoryList().observe(getViewLifecycleOwner(),categoryModelList -> {
+        mViewModel.getBestDealsListMutable().observe(getViewLifecycleOwner(),list -> {
             dialog.dismiss();
-            categoryModels = categoryModelList;
-            adapter = new MyCategoriesAdapter(getContext(),categoryModels);
-            recycler_menu.setAdapter(adapter);
-            recycler_menu.setLayoutAnimation(layoutAnimationController);
+            bestDealsModels = list;
+            adapter = new MyBestDealsAdapter(getContext(),bestDealsModels);
+            recycler_best_deal.setAdapter(adapter);
+            recycler_best_deal.setLayoutAnimation(layoutAnimationController);
         });
 
         return root;
     }
 
     private void initView() {
-
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
 
@@ -105,23 +112,22 @@ public class CategoryFragment extends Fragment {
         layoutAnimationController = AnimationUtils.loadLayoutAnimation(getContext(),R.anim.layout_item_from_left);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
 
-        recycler_menu.setLayoutManager(layoutManager);
-        recycler_menu.addItemDecoration(new DividerItemDecoration(getContext(),layoutManager.getOrientation()));
+        recycler_best_deal.setLayoutManager(layoutManager);
+        recycler_best_deal.addItemDecoration(new DividerItemDecoration(getContext(),layoutManager.getOrientation()));
 
-        MySwiperHelper mySwiperHelper = new MySwiperHelper(getContext(),recycler_menu,200) {
+        MySwiperHelper mySwiperHelper = new MySwiperHelper(getContext(),recycler_best_deal,200) {
             @Override
             public void instantiateMyButton(RecyclerView.ViewHolder viewHolder, List<MyButton> buf) {
-
                 buf.add(new MyButton(getContext(), "Delete", 30, 0, Color.parseColor("#333639"),
                         position -> {
-                            Common.categorySelected = categoryModels.get(position);
+                            Common.bestDealsSelected = bestDealsModels.get(position);
 
                             showDeleteDialog();
                         })
                 );
                 buf.add(new MyButton(getContext(), "Update", 30, 0, Color.parseColor("#560027"),
                         position -> {
-                            Common.categorySelected = categoryModels.get(position);
+                                Common.bestDealsSelected = bestDealsModels.get(position);
 
                             showUpdateDialog();
                         })
@@ -137,25 +143,26 @@ public class CategoryFragment extends Fragment {
         builder.setNegativeButton("CANCLE", (dialog, i) -> {
             dialog.dismiss();
         })
-                .setPositiveButton("DELETE", (dialog, i) -> {
-                    deteleCategoy();
-                });
+        .setPositiveButton("DELETE", (dialog, i) -> {
+            deleteBestDeals();
+        });
 
         androidx.appcompat.app.AlertDialog dialog = builder.create();
         dialog.show();
+
     }
 
-    private void deteleCategoy() {
+    private void deleteBestDeals() {
         FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.CATEGORY_REF)
-                .child(Common.categorySelected.getMenu_id())
+                .getReference(CommonAgr.BEST_DEALS)
+                .child(Common.bestDealsSelected.getKey())
                 .removeValue()
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
                 })
                 .addOnCompleteListener(task -> {
-                    categoryViewModel.loadCategories();
-                    EventBus.getDefault().postSticky(new ToastEvent(false,true));
+                    mViewModel.loadBestDeals();
+                    EventBus.getDefault().postSticky(new ToastEvent(false,false));
                 });
     }
 
@@ -166,15 +173,15 @@ public class CategoryFragment extends Fragment {
 
         View itemView = LayoutInflater.from(getContext()).inflate(R.layout.layout_update_category,null);
         EditText edt_category_name = (EditText)itemView.findViewById(R.id.edt_category_name);
-        img_category = (ImageView)itemView.findViewById(R.id.img_category);
-        
+        img_best_deals = (ImageView)itemView.findViewById(R.id.img_category);
+
         //Set Data
-        edt_category_name.setText(new StringBuilder("").append(Common.categorySelected.getName()));
-        Glide.with(getContext()).load(Common.categorySelected.getImage()).into(img_category);
-        
-        
+        edt_category_name.setText(new StringBuilder("").append(Common.bestDealsSelected.getName()));
+        Glide.with(getContext()).load(Common.bestDealsSelected.getImage()).into(img_best_deals);
+
+
         //Set Event
-        img_category.setOnClickListener(v -> {
+        img_best_deals.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setType("image/*");
             intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -204,18 +211,18 @@ public class CategoryFragment extends Fragment {
                                 Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
                             }
                         }).addOnCompleteListener(task -> {
-                            dialog.dismiss();
-                            imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
-                                updateDate.put("image",uri.toString());
-                                updatecategory(updateDate);
-                            });
-                        }).addOnProgressListener(taskSnapshot -> {
-                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
-                            dialog.setMessage(new StringBuilder("Uploading: ").append(progress).append("%"));
+                    dialog.dismiss();
+                    imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
+                        updateDate.put("image",uri.toString());
+                        updateBestDeals(updateDate);
+                    });
+                }).addOnProgressListener(taskSnapshot -> {
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                    dialog.setMessage(new StringBuilder("Uploading: ").append(progress).append("%"));
                 });
             }
             else {
-                updatecategory(updateDate);
+                updateBestDeals(updateDate);
             }
 
         });
@@ -225,16 +232,16 @@ public class CategoryFragment extends Fragment {
         dialog.show();
     }
 
-    private void updatecategory(Map<String, Object> updateDate) {
+    private void updateBestDeals(Map<String, Object> updateDate) {
         FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.CATEGORY_REF)
-                .child(Common.categorySelected.getMenu_id())
+                .getReference(CommonAgr.BEST_DEALS)
+                .child(Common.bestDealsSelected.getKey())
                 .updateChildren(updateDate)
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
                 })
                 .addOnCompleteListener(task -> {
-                   categoryViewModel.loadCategories();
+                    mViewModel.loadBestDeals();
                     EventBus.getDefault().postSticky(new ToastEvent(true,false));
                 });
     }
@@ -245,8 +252,9 @@ public class CategoryFragment extends Fragment {
         if(requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             if(data != null && data.getData() != null) {
                 imageUri = data.getData();
-                img_category.setImageURI(imageUri);
+                img_best_deals.setImageURI(imageUri);
             }
         }
     }
+
 }

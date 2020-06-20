@@ -22,8 +22,10 @@ import androidx.core.app.NotificationCompat;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.FirebaseDatabase;
+import com.vuducminh.nicefoodserver.model.BestDealsModel;
 import com.vuducminh.nicefoodserver.model.CategoryModel;
 import com.vuducminh.nicefoodserver.model.FoodModel;
+import com.vuducminh.nicefoodserver.model.MostPopularModel;
 import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.model.ServerUserModel;
 import com.vuducminh.nicefoodserver.model.TokenModel;
@@ -37,6 +39,8 @@ public class Common {
     public static CategoryModel categorySelected;
     public static FoodModel selectedFood;
     public static OrderModel currentOrdeSelected;
+    public static BestDealsModel bestDealsSelected;
+    public static MostPopularModel mostPopularSelected;
 
     public static void setSpanString(String welcome, String name, TextView tv_user) {
         SpannableStringBuilder builder = new SpannableStringBuilder();
@@ -177,4 +181,7 @@ public class Common {
         return new StringBuilder("/topics/new_order").toString();
     }
 
+    public static String getNewsTopic() {
+        return new StringBuilder("/topics/news").toString();
+    }
 }

@@ -48,5 +48,27 @@
             app:popUpToInclusive="true" />
     </fragment>
 
+    <fragment
+        android:id="@+id/nav_best_deals"
+        android:name="com.vuducminh.nicefoodserver.ui.best_detail.BestDealsFragment"
+        android:label="@string/menu_best_deals"
+        tools:layout="@layout/best_deals_fragment">
+        <action
+            android:id="@+id/clearBackstack"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_category"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/nav_most_popular"
+        android:name="com.vuducminh.nicefoodserver.ui.most_popular.MostPopularFragment"
+        android:label="@string/menu_most_popular"
+        tools:layout="@layout/most_popular_fragment">
+        <action
+            android:id="@+id/clearBackstack"
+            app:launchSingleTop="true"
+            app:popUpTo="@id/nav_category"
+            app:popUpToInclusive="true" />
+    </fragment>
 
 </navigation>

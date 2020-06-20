@@ -26,6 +26,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -102,14 +103,14 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         orderViewModel =
-                ViewModelProviders.of(this).get(OrderViewModel.class);
+                new ViewModelProvider(this).get(OrderViewModel.class);
         View root = inflater.inflate(R.layout.fragment_order, container, false);
         unbinder = ButterKnife.bind(this, root);
         initViews();
-        orderViewModel.getMessageError().observe(this, s -> {
+        orderViewModel.getMessageError().observe(getViewLifecycleOwner(), s -> {
             Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
         });
-        orderViewModel.getMutableLiveDataOrderModel().observe(this, orderModels -> {
+        orderViewModel.getMutableLiveDataOrderModel().observe(getViewLifecycleOwner(), orderModels -> {
             if (orderModels != null) {
                 adapter = new MyOrderAdapter(getContext(), orderModels);
                 recycler_order.setAdapter(adapter);
