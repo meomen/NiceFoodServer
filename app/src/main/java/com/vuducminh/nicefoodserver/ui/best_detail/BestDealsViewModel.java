@@ -10,6 +10,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vuducminh.nicefoodserver.callback.IBestDealsCallbackListener;
+import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.model.BestDealsModel;
 
@@ -36,7 +37,9 @@ public class BestDealsViewModel extends ViewModel implements IBestDealsCallbackL
     public void loadBestDeals() {
         List<BestDealsModel> temp = new ArrayList<>();
         DatabaseReference bestDealsRef = FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.BEST_DEALS);
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.BEST_DEALS);
         bestDealsRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

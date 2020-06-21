@@ -154,7 +154,9 @@ public class BestDealsFragment extends Fragment {
 
     private void deleteBestDeals() {
         FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.BEST_DEALS)
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.BEST_DEALS)
                 .child(Common.bestDealsSelected.getKey())
                 .removeValue()
                 .addOnFailureListener(e -> {
@@ -234,7 +236,9 @@ public class BestDealsFragment extends Fragment {
 
     private void updateBestDeals(Map<String, Object> updateDate) {
         FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.BEST_DEALS)
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.BEST_DEALS)
                 .child(Common.bestDealsSelected.getKey())
                 .updateChildren(updateDate)
                 .addOnFailureListener(e -> {

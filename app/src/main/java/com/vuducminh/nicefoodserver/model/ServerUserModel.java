@@ -1,7 +1,7 @@
 package com.vuducminh.nicefoodserver.model;
 
 public class ServerUserModel {
-    private String uid,name,phone;
+    private String uid,name,phone,restaurant;
     private boolean active;
 
     public ServerUserModel() {
@@ -12,6 +12,22 @@ public class ServerUserModel {
         this.name = name;
         this.phone = phone;
         this.active = active;
+    }
+
+    public ServerUserModel(String uid, String name, String phone, String restaurant, boolean active) {
+        this.uid = uid;
+        this.name = name;
+        this.phone = phone;
+        this.restaurant = restaurant;
+        this.active = active;
+    }
+
+    public String getRestaurant() {
+        return restaurant;
+    }
+
+    public void setRestaurant(String restaurant) {
+        this.restaurant = restaurant;
     }
 
     public String getUid() {

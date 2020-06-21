@@ -192,7 +192,9 @@ public class ShipperFragment extends Fragment {
         Map<String,Object> updateData = new HashMap<>();
         updateData.put("active",event.isActive());
         FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.SHIPPER)
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.SHIPPER)
                 .child(event.getShipperModel().getKey())
                 .updateChildren(updateData)
                 .addOnFailureListener(e -> {

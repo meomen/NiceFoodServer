@@ -168,7 +168,9 @@ public class SizeAddonEditActivity extends AppCompatActivity {
             updateData.put("foods", Common.categorySelected.getFoods());
 
             FirebaseDatabase.getInstance()
-                    .getReference(CommonAgr.CATEGORY_REF)
+                    .getReference(CommonAgr.RESTAURANT_REF)
+                    .child(Common.currentServerUser.getRestaurant())
+                    .child(CommonAgr.CATEGORY_REF)
                     .child(Common.categorySelected.getMenu_id())
                     .updateChildren(updateData)
                     .addOnFailureListener(e -> {

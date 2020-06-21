@@ -11,6 +11,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.vuducminh.nicefoodserver.callback.IBestDealsCallbackListener;
 import com.vuducminh.nicefoodserver.callback.IMostPopularCallbackListener;
+import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.model.BestDealsModel;
 import com.vuducminh.nicefoodserver.model.MostPopularModel;
@@ -38,7 +39,9 @@ public class MostPopularViewModel extends ViewModel implements IMostPopularCallb
     public void loadMostPopular() {
         List<MostPopularModel> temp = new ArrayList<>();
         DatabaseReference mostPopularRef = FirebaseDatabase.getInstance()
-                .getReference(CommonAgr.MOST_POPULAR);
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.MOST_POPULAR);
         mostPopularRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {

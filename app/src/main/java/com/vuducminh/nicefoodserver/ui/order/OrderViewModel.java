@@ -10,6 +10,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.vuducminh.nicefoodserver.callback.IOrderCallbackListerner;
+import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.model.OrderModel;
 
@@ -41,7 +42,10 @@ public class OrderViewModel extends ViewModel implements IOrderCallbackListerner
 
     public void loadOrderByStatus(int status) {
         List<OrderModel> tempList = new ArrayList<>();
-        Query orderRef = FirebaseDatabase.getInstance().getReference(CommonAgr.ORDER_REF)
+        Query orderRef = FirebaseDatabase.getInstance()
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.ORDER_REF)
                 .orderByChild("orderStatus")
                 .equalTo(status);
         orderRef.addListenerForSingleValueEvent(new ValueEventListener() {
