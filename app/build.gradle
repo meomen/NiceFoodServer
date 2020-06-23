@@ -6,7 +6,7 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "com.vuducminh.nicefoodserver"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -45,6 +45,8 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:5.1.0'   // UI Firebase
     implementation 'com.google.firebase:firebase-storage:19.1.0'
     implementation 'com.google.firebase:firebase-messaging:20.0.0'
+    implementation 'com.firebaseui:firebase-ui-database:6.2.1'
+    implementation 'com.google.firebase:firebase-storage:19.1.1'
 
 
     // Thư viện Retrofit2
@@ -66,7 +68,8 @@ dependencies {
     // Thư viện Dexter (Cấp quyền)
     implementation 'com.karumi:dexter:6.0.2'
     implementation 'com.squareup.retrofit2:converter-scalars:2.6.1'
-
-
+    implementation 'de.hdodenhof:circleimageview:3.0.2'
+    implementation 'com.daasuu:BubbleLayout:1.2.0'   //Chat
+    implementation 'com.github.andremion:counterfab:1.2.2'
 
 }

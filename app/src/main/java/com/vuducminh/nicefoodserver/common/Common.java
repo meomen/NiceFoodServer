@@ -4,12 +4,16 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.OpenableColumns;
 import android.text.SpannableString;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
@@ -192,4 +196,27 @@ public class Common {
                 .append("news")
                 .toString();
     }
+
+    public static String getFileName(ContentResolver contentResolver, Uri fileUri) {
+        String result = null;
+        if(fileUri.getScheme().equals("content")) {
+            Cursor cursor = contentResolver.query(fileUri,null,null,null,null);
+            try {
+                if(cursor != null && cursor.moveToFirst())
+                    result = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+
+            }
+            finally {
+                cursor.close();
+            }
+        }
+        if(result == null) {
+            result = fileUri.getPath();
+            int cut = result.lastIndexOf('/');
+            if(cut != -1)
+                result = result.substring(cut+1);
+        }
+        return result;
+    }
+
 }
