@@ -1,12 +1,22 @@
 package com.vuducminh.nicefoodserver.eventbus;
 
+import com.vuducminh.nicefoodserver.common.Common;
+
 public class ToastEvent {
-    private boolean isUpdate;
+    private Common.ACTION action;
     private boolean isFromFoodList;
 
-    public ToastEvent(boolean isUpdate, boolean isFromFoodList) {
-        this.isUpdate = isUpdate;
+    public ToastEvent(Common.ACTION action, boolean isFromFoodList) {
+        this.action = action;
         this.isFromFoodList = isFromFoodList;
+    }
+
+    public Common.ACTION getAction() {
+        return action;
+    }
+
+    public void setAction(Common.ACTION action) {
+        this.action = action;
     }
 
     public boolean isFromFoodList() {
@@ -15,13 +25,5 @@ public class ToastEvent {
 
     public void setFromFoodList(boolean fromFoodList) {
         isFromFoodList = fromFoodList;
-    }
-
-    public boolean isUpdate() {
-        return isUpdate;
-    }
-
-    public void setUpdate(boolean update) {
-        isUpdate = update;
     }
 }

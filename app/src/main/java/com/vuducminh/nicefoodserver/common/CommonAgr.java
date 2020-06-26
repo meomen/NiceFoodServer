@@ -23,4 +23,5 @@ public class CommonAgr {
     public static final String KEY_ROOM_ID = "CHAT_ROOM_ID";
     public static final String KEY_CHAT_USER = "CHAT_SENDER";
     public static final String CHAT_DETAIL_REF = "ChatDetail";
+    public static final String FILE_PRINT = "last_order_print.pdf";
 }

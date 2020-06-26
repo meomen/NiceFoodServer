@@ -1,16 +1,21 @@
 package com.vuducminh.nicefoodserver;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 
+import android.print.PrintAttributes;
+import android.print.PrintDocumentAdapter;
+import android.print.PrintManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 
+import androidx.annotation.FontRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -30,12 +35,26 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.PageSize;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfDocument;
+import com.itextpdf.text.pdf.PdfWriter;
+import com.vuducminh.nicefoodserver.adapter.PdfDocumentAdapter;
 import com.vuducminh.nicefoodserver.common.Common;
 import com.vuducminh.nicefoodserver.common.CommonAgr;
+import com.vuducminh.nicefoodserver.common.PDFUtils.PDFUtils;
 import com.vuducminh.nicefoodserver.eventbus.CategoryClick;
 import com.vuducminh.nicefoodserver.eventbus.ChangeMenuClick;
+import com.vuducminh.nicefoodserver.eventbus.PrintOrderEvent;
 import com.vuducminh.nicefoodserver.eventbus.ToastEvent;
+import com.vuducminh.nicefoodserver.model.CartItem;
 import com.vuducminh.nicefoodserver.model.FCMserver.FCMSendData;
+import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.remote.IFCMServer;
 import com.vuducminh.nicefoodserver.remote.RetrofitFCMClient;
 
@@ -43,6 +62,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 
 import android.view.Menu;
 import android.widget.EditText;
@@ -55,14 +75,22 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -82,6 +110,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private FirebaseStorage storage;
     private StorageReference storageReference;
 
+    private AlertDialog dialog;
+
     @OnClick(R.id.fab_chat)
     void onOpenChatList() {
         startActivity(new Intent(this,ChatListActivity.class));
@@ -96,12 +126,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         ButterKnife.bind(this);
 
-        ifcmServer = RetrofitFCMClient.getInstance().create(IFCMServer.class);
-        storage = FirebaseStorage.getInstance();
-        storageReference = storage.getReference();
-
-        subscribeToTopic(Common.createTopicOrder());
-        updatToken();
+        init();
 
         drawer = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
@@ -124,6 +149,18 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         menuClick = R.id.nav_category; // Default
 
         checkIsOpenFromActivity();
+    }
+
+    private void init() {
+        ifcmServer = RetrofitFCMClient.getInstance().create(IFCMServer.class);
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
+        subscribeToTopic(Common.createTopicOrder());
+        updatToken();
+
+        dialog = new AlertDialog.Builder(this).setCancelable(false)
+                .setMessage("Please wait...")
+                .create();
     }
 
     private void checkIsOpenFromActivity() {
@@ -181,6 +218,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onStop() {
+        EventBus.getDefault().removeAllStickyEvents();
         EventBus.getDefault().unregister(this);
         compositeDisposable.clear();
         super.onStop();
@@ -198,9 +236,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onToastEvent(ToastEvent event) {
-        if (event.isUpdate()) {
+        if(event.getAction() == Common.ACTION.CREATE) {
+            Toast.makeText(this, "Create Success!", Toast.LENGTH_SHORT).show();
+        }
+        else if(event.getAction() == Common.ACTION.UPDATE) {
             Toast.makeText(this, "Update Success!", Toast.LENGTH_SHORT).show();
-        } else {
+        }
+        else {
             Toast.makeText(this, "Delete Success!", Toast.LENGTH_SHORT).show();
         }
         EventBus.getDefault().postSticky(new ChangeMenuClick(event.isFromFoodList()));
@@ -453,4 +495,143 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     }
+
+    @Subscribe(sticky = true,threadMode = ThreadMode.MAIN)
+    public void onPrintEventListener(PrintOrderEvent event) {
+        createPDFFile(event.getPath(),event.getOrderModel());
+    }
+
+    private void createPDFFile(String path, OrderModel orderModel) {
+        dialog.show();
+
+        if(new File(path).exists())
+            new File(path).delete();
+        try{
+            Document document = new Document();
+            //Save
+            PdfWriter.getInstance(document,new FileOutputStream(path));
+            //Open
+            document.open();
+
+            //Setting
+            document.setPageSize(PageSize.A4);
+            document.addCreationDate();
+            document.addAuthor("NiceFood");
+            document.addCreator(Common.currentServerUser.getName());
+
+            //Front Setting
+            BaseColor colorAccent = new BaseColor(0,153,204,255);
+            float fontSize = 20.0f;
+
+            BaseFont fontName = BaseFont.createFont("assets/fonts/brandon_medium.otf","UTF-8",BaseFont.EMBEDDED);
+            
+            //Create tiitle of Document
+            Font titleFont = new Font(fontName,36.0f,Font.NORMAL,BaseColor.BLACK);
+            PDFUtils.addNewItem(document,"Order Details", Element.ALIGN_CENTER,titleFont);
+
+            //Add more
+            Font orderNumberfont = new Font(fontName,fontSize,Font.NORMAL,colorAccent);
+            PDFUtils.addNewItem(document,"Order No:",Element.ALIGN_LEFT,orderNumberfont);
+
+            Font orderNumberValueFont = new Font(fontName,20,Font.NORMAL,BaseColor.BLACK);
+            PDFUtils.addNewItem(document,orderModel.getKey(),Element.ALIGN_LEFT,orderNumberValueFont);
+
+            PDFUtils.addLineSeperator(document);
+
+            //Date
+            PDFUtils.addNewItem(document,"Order Date",Element.ALIGN_LEFT,orderNumberfont);
+            PDFUtils.addNewItem(document, new SimpleDateFormat("dd/MM/yyyy").format(orderModel.getCreateDate()),Element.ALIGN_LEFT,orderNumberValueFont);
+            PDFUtils.addLineSeperator(document);
+            //Account name
+            PDFUtils.addNewItem(document,"Account Name",Element.ALIGN_LEFT,orderNumberfont);
+            PDFUtils.addNewItem(document,orderModel.getUserName() ,Element.ALIGN_LEFT,orderNumberValueFont);
+            PDFUtils.addLineSeperator(document);
+
+            //Add product and detail
+            PDFUtils.addLineSpace(document);
+            PDFUtils.addNewItem(document,"Product Detail",Element.ALIGN_CENTER,titleFont);
+            PDFUtils.addLineSeperator(document);
+
+            //fetch Image from Internet
+            Observable.fromIterable(orderModel.getCartItemList())
+                    .flatMap(cartItem -> Common.getBitmapFromUrl(HomeActivity.this,cartItem,document))
+                    .subscribeOn(Schedulers.computation())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(cartItem ->{
+
+                        PDFUtils.addNewItemWithLeftAndRight(document,cartItem.getFoodName(),
+                                ("(0.0%)"),
+                                titleFont,
+                                orderNumberValueFont);
+                        //Food Size and AddOn
+                        PDFUtils.addNewItemWithLeftAndRight(document,
+                                "Size",
+                                Common.formatSizeJsonToString(cartItem.getFoodSize()),
+                                titleFont,
+                                orderNumberValueFont);
+
+                        PDFUtils.addNewItemWithLeftAndRight(document,
+                                "Addon",
+                                Common.formatAddonJsonToString(cartItem.getFoodAddon()),
+                                titleFont,
+                                orderNumberValueFont);
+
+                        //Price
+                        PDFUtils.addNewItemWithLeftAndRight(document,
+                                new StringBuilder()
+                        .append(cartItem.getFoodQuantity())
+                        .append("*")
+                        .append(cartItem.getFoodPrice() + cartItem.getFoodExtraPrice())
+                        .toString(),
+                                new StringBuilder()
+                        .append(cartItem.getFoodQuantity()*(cartItem.getFoodExtraPrice()+cartItem.getFoodPrice()))
+                        .toString(),
+                                titleFont,
+                                orderNumberValueFont);
+
+                        PDFUtils.addLineSeperator(document);
+
+                    },throwable -> {
+                        dialog.dismiss();
+                        Toast.makeText(HomeActivity.this,""+throwable.getMessage(),Toast.LENGTH_SHORT).show();
+                    },()->{
+                        PDFUtils.addLineSeperator(document);
+                        PDFUtils.addLineSeperator(document);
+                        
+                        PDFUtils.addNewItemWithLeftAndRight(document,"Total",
+                                new StringBuilder()
+                        .append(orderModel.getTotalPayment()).toString(),
+                                titleFont,
+                                titleFont);
+                    });
+
+            //Close
+            document.close();
+            dialog.dismiss();
+            Toast.makeText(this,"Success",Toast.LENGTH_SHORT).show();
+            
+            printPDF();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (DocumentException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void printPDF() {
+        PrintManager printManager = (PrintManager)getSystemService(Context.PRINT_SERVICE);
+        try {
+            PrintDocumentAdapter printDocumentAdapter = new PdfDocumentAdapter(this,new StringBuilder(Common.getAppPath(this))
+            .append(CommonAgr.FILE_PRINT).toString());
+            printManager.print("Document",printDocumentAdapter, new PrintAttributes.Builder().build());
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+
 }

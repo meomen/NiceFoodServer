@@ -48,6 +48,17 @@ public class MyOrderDetailAdapter extends RecyclerView.Adapter<MyOrderDetailAdap
                 .into(holder.img_food_image);
         holder.tv_food_name.setText(new StringBuilder().append(cartItemList.get(position).getFoodName()));
         holder.tv_food_quantity.setText(new StringBuilder("Quantity: ").append(cartItemList.get(position).getFoodQuantity()));
+
+
+        if(cartItemList.get(position).getFoodSize().equals("Default")) {
+            holder.tv_food_size.setText(new StringBuilder("Size: ").append("Default"));
+        }
+        else {
+            SizeModel sizeModel = gson.fromJson(cartItemList.get(position).getFoodSize(),new TypeToken<SizeModel>(){}.getType());
+            if(sizeModel != null) {
+                holder.tv_food_size.setText(new StringBuilder("Size: ").append(sizeModel.getName()));
+            }
+        }
 //        SizeModel sizeModel = gson.fromJson(cartItemList.get(position).getFoodSize(),new TypeToken<SizeModel>(){}.getType());
 //        if(sizeModel != null) {
 //            holder.tv_food_size.setText(new StringBuilder("Size: ").append(sizeModel.getName()));

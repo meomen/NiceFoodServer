@@ -7,6 +7,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AnimationUtils;
@@ -40,6 +43,7 @@ import com.vuducminh.nicefoodserver.adapter.MyCategoriesAdapter;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,6 +72,12 @@ public class CategoryFragment extends Fragment {
     private Uri imageUri = null;
     FirebaseStorage storage;
     StorageReference storageReference;
+
+    @Override
+    public void onStop() {
+        EventBus.getDefault().removeAllStickyEvents();
+        super.onStop();
+    }
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -127,7 +137,109 @@ public class CategoryFragment extends Fragment {
                         })
                 );
             }
+
         };
+
+        setHasOptionsMenu(true);
+
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.action_bar_menu,menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if(item.getItemId() == R.id.action_create) {
+            showAddDialog();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void showAddDialog() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Create");
+        builder.setMessage("Please fill information");
+
+        View itemView = LayoutInflater.from(getContext()).inflate(R.layout.layout_update_category,null);
+        EditText edt_category_name = (EditText)itemView.findViewById(R.id.edt_category_name);
+        img_category = (ImageView)itemView.findViewById(R.id.img_category);
+
+        //Set Data
+        Glide.with(getContext()).load(R.drawable.ic_baseline_image_24).into(img_category);
+
+
+        //Set Event
+        img_category.setOnClickListener(v -> {
+            Intent intent = new Intent();
+            intent.setType("image/*");
+            intent.setAction(Intent.ACTION_GET_CONTENT);
+            startActivityForResult(Intent.createChooser(intent,"Select Picture"),PICK_IMAGE_REQUEST);
+        });
+
+        builder.setNegativeButton("CANCLE", (dialogInterface, which) -> {
+            dialogInterface.dismiss();
+        }).
+                setPositiveButton("CREATE", (dialogInterface, which) -> {
+            CategoryModel categoryModel = new CategoryModel();
+            categoryModel.setName(edt_category_name.getText().toString());
+            categoryModel.setFoods(new ArrayList<>());
+
+            if(imageUri != null) {
+
+                // firebase Storage upload image
+                dialog.setMessage("Uploading...");
+                dialog.show();
+
+                String unique_name = UUID.randomUUID().toString();
+                StorageReference imageFolder = storageReference.child("images/"+unique_name);
+
+                imageFolder.putFile(imageUri)
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                dialog.dismiss();
+                                Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                            }
+                        }).addOnCompleteListener(task -> {
+                    dialog.dismiss();
+                    imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
+                        categoryModel.setImage(uri.toString());
+                        addCategory(categoryModel);
+                    });
+                }).addOnProgressListener(taskSnapshot -> {
+                    double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot.getTotalByteCount());
+                    dialog.setMessage(new StringBuilder("Uploading: ").append(progress).append("%"));
+                });
+            }
+            else {
+                addCategory(categoryModel);
+            }
+
+        });
+
+        builder.setView(itemView);
+        androidx.appcompat.app.AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void addCategory(CategoryModel categoryModel) {
+        FirebaseDatabase.getInstance()
+                .getReference(CommonAgr.RESTAURANT_REF)
+                .child(Common.currentServerUser.getRestaurant())
+                .child(CommonAgr.CATEGORY_REF)
+                .push()
+                .setValue(categoryModel)
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(),""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                })
+                .addOnCompleteListener(task -> {
+                    categoryViewModel.loadCategories();
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.CREATE,true));
+                });
     }
 
     private void showDeleteDialog() {
@@ -157,7 +269,7 @@ public class CategoryFragment extends Fragment {
                 })
                 .addOnCompleteListener(task -> {
                     categoryViewModel.loadCategories();
-                    EventBus.getDefault().postSticky(new ToastEvent(false,true));
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.DELETE,true));
                 });
     }
 
@@ -239,7 +351,7 @@ public class CategoryFragment extends Fragment {
                 })
                 .addOnCompleteListener(task -> {
                    categoryViewModel.loadCategories();
-                    EventBus.getDefault().postSticky(new ToastEvent(true,false));
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.UPDATE,false));
                 });
     }
 

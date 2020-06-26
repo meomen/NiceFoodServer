@@ -72,4 +72,8 @@ dependencies {
     implementation 'com.daasuu:BubbleLayout:1.2.0'   //Chat
     implementation 'com.github.andremion:counterfab:1.2.2'
 
+    //Print PDF
+    implementation 'com.itextpdf:itextg:5.5.10'
+
+
 }

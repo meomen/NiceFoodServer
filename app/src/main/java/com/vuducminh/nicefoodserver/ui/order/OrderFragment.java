@@ -54,6 +54,7 @@ import com.vuducminh.nicefoodserver.common.CommonAgr;
 import com.vuducminh.nicefoodserver.common.MySwiperHelper;
 import com.vuducminh.nicefoodserver.eventbus.ChangeMenuClick;
 import com.vuducminh.nicefoodserver.eventbus.LoadOrderEvent;
+import com.vuducminh.nicefoodserver.eventbus.PrintOrderEvent;
 import com.vuducminh.nicefoodserver.model.FCMserver.FCMSendData;
 import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.R;
@@ -137,6 +138,31 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
         MySwiperHelper mySwiperHelper = new MySwiperHelper(getContext(), recycler_order, width / 6) {
             @Override
             public void instantiateMyButton(RecyclerView.ViewHolder viewHolder, List<MyButton> buf) {
+                buf.add(new MyButton(getContext(), "Print", 30, 0, Color.parseColor("#8B0010"),
+                        position -> {
+                           Dexter.withActivity(getActivity())
+                                   .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                   .withListener(new PermissionListener() {
+                                       @Override
+                                       public void onPermissionGranted(PermissionGrantedResponse response) {
+                                           EventBus.getDefault().postSticky(new PrintOrderEvent(new StringBuilder(Common.getAppPath(getActivity()))
+                                                   .append(CommonAgr.FILE_PRINT).toString(),
+                                                   adapter.getItemAtPosition(position)));
+                                       }
+
+                                       @Override
+                                       public void onPermissionDenied(PermissionDeniedResponse response) {
+                                           Toast.makeText(getContext(),"Please accept this permission",Toast.LENGTH_SHORT).show();
+
+                                       }
+
+                                       @Override
+                                       public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+                                       }
+                                   }).check();
+                        })
+                );
+
                 buf.add(new MyButton(getContext(), "Directions", 30, 0, Color.parseColor("#9B0000"),
                         position -> {
                             OrderModel orderModel = ((MyOrderAdapter)recycler_order.getAdapter())

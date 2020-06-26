@@ -164,7 +164,7 @@ public class BestDealsFragment extends Fragment {
                 })
                 .addOnCompleteListener(task -> {
                     mViewModel.loadBestDeals();
-                    EventBus.getDefault().postSticky(new ToastEvent(false,false));
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.DELETE,false));
                 });
     }
 
@@ -246,7 +246,8 @@ public class BestDealsFragment extends Fragment {
                 })
                 .addOnCompleteListener(task -> {
                     mViewModel.loadBestDeals();
-                    EventBus.getDefault().postSticky(new ToastEvent(true,false));
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.UPDATE,false));
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.UPDATE,false));
                 });
     }
 

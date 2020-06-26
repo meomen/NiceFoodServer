@@ -8,6 +8,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -23,20 +24,41 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.NotificationCompat;
+import androidx.fragment.app.FragmentActivity;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.itextpdf.text.BadElementException;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Image;
+import com.vuducminh.nicefoodserver.HomeActivity;
+import com.vuducminh.nicefoodserver.model.AddonModel;
 import com.vuducminh.nicefoodserver.model.BestDealsModel;
+import com.vuducminh.nicefoodserver.model.CartItem;
 import com.vuducminh.nicefoodserver.model.CategoryModel;
 import com.vuducminh.nicefoodserver.model.FoodModel;
 import com.vuducminh.nicefoodserver.model.MostPopularModel;
 import com.vuducminh.nicefoodserver.model.OrderModel;
 import com.vuducminh.nicefoodserver.model.ServerUserModel;
+import com.vuducminh.nicefoodserver.model.SizeModel;
 import com.vuducminh.nicefoodserver.model.TokenModel;
 import com.vuducminh.nicefoodserver.R;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 
 public class Common {
     public static ServerUserModel currentServerUser;
@@ -45,6 +67,12 @@ public class Common {
     public static OrderModel currentOrdeSelected;
     public static BestDealsModel bestDealsSelected;
     public static MostPopularModel mostPopularSelected;
+
+    public enum ACTION{
+        CREATE,
+        UPDATE,
+        DELETE
+    }
 
     public static void setSpanString(String welcome, String name, TextView tv_user) {
         SpannableStringBuilder builder = new SpannableStringBuilder();
@@ -219,4 +247,64 @@ public class Common {
         return result;
     }
 
+    public static String getAppPath(Context context) {
+        File dir = new File(android.os.Environment.getExternalStorageDirectory()
+        +File.separator
+        +context.getResources().getString(R.string.app_name)
+        + File.separator);
+
+        if(!dir.exists())
+            dir.mkdir();
+        return dir.getPath()+File.separator;
+    }
+
+    public static Observable<CartItem> getBitmapFromUrl(Context context, CartItem cartItem, Document document) {
+        return Observable.fromCallable(() -> {
+            Bitmap bitmap = null;
+
+            bitmap = Glide.with(context)
+                        .asBitmap()
+                        .load(cartItem.getFoodImage())
+                        .submit().get();
+
+            Image image  = Image.getInstance(bitmapToByArray(bitmap));
+            image.scaleAbsolute(80,80);
+
+            document.add(image);
+
+            return cartItem;
+        });
+    }
+
+    private static byte[] bitmapToByArray(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG,100,stream);
+        return stream.toByteArray();
+    }
+
+    public static String formatSizeJsonToString(String foodSize) {
+        if(foodSize.equals("Default")) {
+            return foodSize;
+        }
+        else {
+            Gson gson = new Gson();
+            SizeModel sizeModel = gson.fromJson(foodSize,SizeModel.class);
+            return sizeModel.getName();
+        }
+    }
+
+    public static String formatAddonJsonToString(String foodAddon) {
+        if(foodAddon.equals("Default")) {
+            return foodAddon;
+        }
+        else {
+            StringBuilder stringBuilder = new StringBuilder();
+            Gson gson = new Gson();
+            List<AddonModel> addonModels = gson.fromJson(foodAddon, new TypeToken<List<AddonModel>>(){}.getType());
+            for(AddonModel addonModel:addonModels) {
+                stringBuilder.append(addonModel.getName()).append(",");
+            }
+            return stringBuilder.substring(0,stringBuilder.length()-1);
+        }
+    }
 }
