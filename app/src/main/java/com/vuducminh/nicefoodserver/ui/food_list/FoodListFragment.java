@@ -361,7 +361,7 @@ public class FoodListFragment extends Fragment {
             }
             else {
                 Common.categorySelected.getFoods().set(position,updateFood);
-                updateFood(Common.categorySelected.getFoods(), Common.ACTION.DELETE);
+                updateFood(Common.categorySelected.getFoods(), Common.ACTION.UPDATE);
             }
         });
 

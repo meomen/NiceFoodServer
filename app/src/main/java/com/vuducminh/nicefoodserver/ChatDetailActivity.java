@@ -67,8 +67,8 @@ import butterknife.OnClick;
 
 public class ChatDetailActivity extends AppCompatActivity implements ILoadTimeFromFirebaseListener {
 
-    public static final int MY_CAMERA_REQUEST_CODE = 691999;
-    public static final int MY_RESULT_LOAD_IMG = 961999;
+    public static final int MY_CAMERA_REQUEST_CODE = 1999;
+    public static final int MY_RESULT_LOAD_IMG = 6999;
 
     private String roomId,chatSender;
 
@@ -169,7 +169,29 @@ public class ChatDetailActivity extends AppCompatActivity implements ILoadTimeFr
 
             @Override
             public int getItemViewType(int position) {
-                return adapter.getItem(position).isPicture() ? 1 : 0;
+//                return adapter.getItem(position).isPicture() ? 1 : 0;
+                ChatMessageModel chatMessageModel = adapter.getItem(position);
+
+
+                if(!chatMessageModel.getOwnId().equals(Common.currentServerUser.getUid())    // Tin nhắn khách, không có hình
+                && !chatMessageModel.isPicture()) {
+                    return 0;
+                }
+                else if(!chatMessageModel.getOwnId().equals(Common.currentServerUser.getUid())   // Tin nhắn khách, có hình
+                        && chatMessageModel.isPicture()) {
+                    return 1;
+                }
+                else if(chatMessageModel.getOwnId().equals(Common.currentServerUser.getUid())   // Tin nhắn của mình, không có hình
+                        && !chatMessageModel.isPicture()) {
+                    return 2;
+                }
+                else if(chatMessageModel.getOwnId().equals(Common.currentServerUser.getUid())    // Tin nhắn của mình, có hình
+                        && chatMessageModel.isPicture()) {
+                    return 3;
+                }
+                else {
+                    return 0;   // Default
+                }
             }
 
             @Override
@@ -205,10 +227,25 @@ public class ChatDetailActivity extends AppCompatActivity implements ILoadTimeFr
                             .inflate(R.layout.layout_message_text,viewGroup,false);
                     return new ChatTextHolder(view);
                 }
-                else {
+                else if(viewType == 1) {
                     view = LayoutInflater.from(viewGroup.getContext())
                             .inflate(R.layout.layout_message_picture,viewGroup,false);
                     return new ChatPictureHolder(view);
+                }
+                else if(viewType == 2) {
+                    view = LayoutInflater.from(viewGroup.getContext())
+                            .inflate(R.layout.layout_my_message_text,viewGroup,false);
+                    return new ChatTextHolder(view);
+                }
+                else if(viewType == 3) {
+                    view = LayoutInflater.from(viewGroup.getContext())
+                            .inflate(R.layout.layout_my_message_picture,viewGroup,false);
+                    return new ChatPictureHolder(view);
+                }
+                else {
+                    view = LayoutInflater.from(viewGroup.getContext())
+                            .inflate(R.layout.layout_message_text,viewGroup,false);
+                    return new ChatTextHolder(view);
                 }
             }
         };
@@ -268,7 +305,7 @@ public class ChatDetailActivity extends AppCompatActivity implements ILoadTimeFr
     private File getOutputMediaFile() {
         File mediaStorageDir = new File(
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                "NiceFood");
+                "NiceFoodServer");
 
         if(!mediaStorageDir.exists()) {
             if(!mediaStorageDir.mkdir())
@@ -299,6 +336,7 @@ public class ChatDetailActivity extends AppCompatActivity implements ILoadTimeFr
         chatMessageModel.setName(Common.currentServerUser.getName());
         chatMessageModel.setContent(edt_chat.getText().toString());
         chatMessageModel.setTimeStamp(estimateTimeInMs);
+        chatMessageModel.setOwnId(Common.currentServerUser.getUid());
 
         if(fileUri == null) {
             chatMessageModel.setPicture(false);
@@ -426,8 +464,6 @@ public class ChatDetailActivity extends AppCompatActivity implements ILoadTimeFr
 
             //Create task
             Task<Uri> task = uploadTask.continueWithTask(task1 -> {
-                if(task1.isSuccessful())
-                    Toast.makeText(this,"Failed to upload",Toast.LENGTH_SHORT).show();
                 return storageReference.getDownloadUrl();
             }).addOnCompleteListener(task12 -> {
                 if(task12.isSuccessful()) {

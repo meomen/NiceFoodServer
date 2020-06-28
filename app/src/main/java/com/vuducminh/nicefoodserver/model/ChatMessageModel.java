@@ -4,6 +4,7 @@ public class ChatMessageModel {
     private String uid,name,content,pictureLink;
     private boolean isPicture;
     private Long timeStamp;
+    private String ownId;
 
     public ChatMessageModel() {
     }
@@ -55,5 +56,13 @@ public class ChatMessageModel {
     public void setTimeStamp(Long timeStamp) {
         this.timeStamp = timeStamp;
     }
+    public String getOwnId() {
+        return ownId;
+    }
+
+    public void setOwnId(String ownId) {
+        this.ownId = ownId;
+    }
+
 }
 

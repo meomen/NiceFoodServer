@@ -138,30 +138,30 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
         MySwiperHelper mySwiperHelper = new MySwiperHelper(getContext(), recycler_order, width / 6) {
             @Override
             public void instantiateMyButton(RecyclerView.ViewHolder viewHolder, List<MyButton> buf) {
-                buf.add(new MyButton(getContext(), "Print", 30, 0, Color.parseColor("#8B0010"),
-                        position -> {
-                           Dexter.withActivity(getActivity())
-                                   .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                                   .withListener(new PermissionListener() {
-                                       @Override
-                                       public void onPermissionGranted(PermissionGrantedResponse response) {
-                                           EventBus.getDefault().postSticky(new PrintOrderEvent(new StringBuilder(Common.getAppPath(getActivity()))
-                                                   .append(CommonAgr.FILE_PRINT).toString(),
-                                                   adapter.getItemAtPosition(position)));
-                                       }
-
-                                       @Override
-                                       public void onPermissionDenied(PermissionDeniedResponse response) {
-                                           Toast.makeText(getContext(),"Please accept this permission",Toast.LENGTH_SHORT).show();
-
-                                       }
-
-                                       @Override
-                                       public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
-                                       }
-                                   }).check();
-                        })
-                );
+//                buf.add(new MyButton(getContext(), "Print", 30, 0, Color.parseColor("#8B0010"),
+//                        position -> {
+//                           Dexter.withActivity(getActivity())
+//                                   .withPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                                   .withListener(new PermissionListener() {
+//                                       @Override
+//                                       public void onPermissionGranted(PermissionGrantedResponse response) {
+//                                           EventBus.getDefault().postSticky(new PrintOrderEvent(new StringBuilder(Common.getAppPath(getActivity()))
+//                                                   .append(CommonAgr.FILE_PRINT).toString(),
+//                                                   adapter.getItemAtPosition(position)));
+//                                       }
+//
+//                                       @Override
+//                                       public void onPermissionDenied(PermissionDeniedResponse response) {
+//                                           Toast.makeText(getContext(),"Please accept this permission",Toast.LENGTH_SHORT).show();
+//
+//                                       }
+//
+//                                       @Override
+//                                       public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+//                                       }
+//                                   }).check();
+//                        })
+//                );
 
                 buf.add(new MyButton(getContext(), "Directions", 30, 0, Color.parseColor("#9B0000"),
                         position -> {
@@ -366,7 +366,7 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
                         Toast.makeText(getContext(), "Please select Shipper", Toast.LENGTH_SHORT).show();
                     }
                 }
-//                updateOrder(position, orderModel, 1);
+
             }
             else if (rdi_shipped != null && rdi_shipped.isChecked()) {
                 dialog.dismiss();
@@ -406,7 +406,7 @@ public class OrderFragment extends Fragment implements IShipperLoadcallbackListe
                     if (task.isSuccessful()) {
                         dialog.dismiss();
                         Toast.makeText(getContext(), "Order has been sent to shipper", Toast.LENGTH_SHORT).show();
-//                        updateOrder(position, orderModel, 1);
+
 
                         //First, get token of user
                         FirebaseDatabase.getInstance()

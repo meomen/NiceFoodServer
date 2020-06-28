@@ -191,7 +191,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 })
                 .addOnCompleteListener(task -> {
                     if(task.isSuccessful()) {
-                        Toast.makeText(this,"Failed: "+task.isSuccessful(),Toast.LENGTH_SHORT).show();
+                        
                     }
                 });
     }
@@ -257,7 +257,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             navController.navigate(R.id.nav_category);
         } else {
             //Clear
-            navController.popBackStack(R.id.nav_food_list, true);
+//            navController.popBackStack(R.id.nav_food_list, true);
             navController.navigate(R.id.nav_food_list);
         }
         menuClick = -1;

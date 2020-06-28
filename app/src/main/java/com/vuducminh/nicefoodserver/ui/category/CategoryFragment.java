@@ -351,7 +351,7 @@ public class CategoryFragment extends Fragment {
                 })
                 .addOnCompleteListener(task -> {
                    categoryViewModel.loadCategories();
-                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.UPDATE,false));
+                    EventBus.getDefault().postSticky(new ToastEvent(Common.ACTION.UPDATE,true));
                 });
     }
 

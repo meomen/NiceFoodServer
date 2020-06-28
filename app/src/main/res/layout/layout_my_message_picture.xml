@@ -5,48 +5,53 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp"
+    android:gravity="right"
     android:orientation="horizontal">
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/profile_image"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:src="@drawable/ic_red_account_circle_24"
-        />
 
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="right">
+
         <TextView
             android:id="@+id/tv_email"
             android:text="vuducminhkyle@gmail.com"
             android:textSize="16sp"
             android:fontFamily="@font/brandon_medium"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
         <com.daasuu.bl.BubbleLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:padding="8dp"
             app:bl_bubbleColor="#E9ECF0"
-            app:bl_arrowDirection="left"
+            app:bl_arrowDirection="right"
             app:bl_arrowHeight="8dp"
             app:bl_arrowPosition="16dp"
             app:bl_arrowWidth="8dp"
             app:bl_cornersRadius="6dp"
             app:bl_strokeWidth="1dp">
 
-            <TextView
-                android:id="@+id/tv_chat_message"
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginRight="4dp"
-                android:text="fjfasdjncvacndasdc"
-                android:textColor="@android:color/black"/>
-
+                android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/img_preview"
+                    android:layout_width="300dp"
+                    android:layout_height="200dp"/>
+                <TextView
+                    android:id="@+id/tv_chat_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|right"
+                    android:layout_marginRight="4dp"
+                    android:text="fjfasdjncvacndasdc"
+                    android:textColor="@android:color/black"/>
+            </LinearLayout>
         </com.daasuu.bl.BubbleLayout>
 
         <TextView
@@ -54,9 +59,14 @@
             android:text="5 minutes"
             android:textSize="12sp"
             android:fontFamily="@font/brandon_medium"
-            android:layout_width="match_parent"
+            android:layout_gravity="right"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
-
-
     </LinearLayout>
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profile_image"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/ic_blue_account_circle_24"
+        />
 </LinearLayout>

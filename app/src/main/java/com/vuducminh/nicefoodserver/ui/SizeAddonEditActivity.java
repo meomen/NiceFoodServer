@@ -117,6 +117,7 @@ public class SizeAddonEditActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
 
+
         recycler_addon_size.setHasFixedSize(true);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         recycler_addon_size.setLayoutManager(layoutManager);
@@ -217,22 +218,22 @@ public class SizeAddonEditActivity extends AppCompatActivity {
     @Subscribe(sticky = true, threadMode = ThreadMode.MAIN)
     public void onAddonSizeReceive(AddonSizeEditEvent event) {
         if (!event.isAddon()) {
-            if (Common.selectedFood.getSize() == null) {
+            if (Common.selectedFood.getSize() == null)
                 Common.selectedFood.setSize(new ArrayList<>());
-                sizeAdapter = new MySizeAdapter(this, Common.selectedFood.getSize());
-                foodEditPosition = event.getPosition();
-                recycler_addon_size.setAdapter(sizeAdapter);
-                isAddon = event.isAddon();
-            }
+            sizeAdapter = new MySizeAdapter(this, Common.selectedFood.getSize());
+            foodEditPosition = event.getPosition();
+            recycler_addon_size.setAdapter(sizeAdapter);
+            isAddon = event.isAddon();
+
         }
         else {
-            if (Common.selectedFood.getAddon() == null) {
+            if (Common.selectedFood.getAddon() == null)
                 Common.selectedFood.setAddon(new ArrayList<>());
-                addonAdapter = new MyAddonAdapter(this, Common.selectedFood.getAddon());
-                foodEditPosition = event.getPosition();
-                recycler_addon_size.setAdapter(addonAdapter);
-                isAddon = event.isAddon();
-            }
+            addonAdapter = new MyAddonAdapter(this, Common.selectedFood.getAddon());
+            foodEditPosition = event.getPosition();
+            recycler_addon_size.setAdapter(addonAdapter);
+            isAddon = event.isAddon();
+
         }
     }
 
