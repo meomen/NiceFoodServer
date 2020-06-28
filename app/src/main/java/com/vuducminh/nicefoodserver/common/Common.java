@@ -60,7 +60,11 @@ import java.util.concurrent.ExecutionException;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 
+
+//Lưu trữ các biến, hàm có phạm vi dùng trên toàn ứng dụng
 public class Common {
+
+    //Các biến có phạm vi dùng trên toàn ứng dụng
     public static ServerUserModel currentServerUser;
     public static CategoryModel categorySelected;
     public static FoodModel selectedFood;
@@ -68,12 +72,14 @@ public class Common {
     public static BestDealsModel bestDealsSelected;
     public static MostPopularModel mostPopularSelected;
 
+    // enum các hoạt động đối với Category và Food
     public enum ACTION{
         CREATE,
         UPDATE,
         DELETE
     }
 
+    // chỉnh font SpanString
     public static void setSpanString(String welcome, String name, TextView tv_user) {
         SpannableStringBuilder builder = new SpannableStringBuilder();
         builder.append(welcome);
